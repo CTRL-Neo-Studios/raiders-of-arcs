@@ -1,5 +1,17 @@
 {
-  "itemGroup.roa": "Example Mod Tab",
+  "itemGroup.roa": "Raiders of ARCs",
   "block.roa.example_block": "Example Block",
-  "item.roa.example_item": "Example Item"
+  "item.roa.heavy_ammo": "Heavy Ammo",
+  "item.roa.medium_ammo": "Medium Ammo",
+  "item.roa.light_ammo": "Light Ammo",
+  "item.roa.shotgun_ammo": "Shotgun Ammo",
+  "item.roa.launcher_ammo": "Launcher Ammo",
+  "item.roa.energy_clip": "Energy Clip",
+  "tooltip.roa.ammo": "Ammo",
+  "tooltip.roa.fire_mode": "Fire Mode",
+  "tooltip.roa.stats": "Stats",
+  "tooltip.roa.damage": "Damage",
+  "tooltip.roa.fire_rate": "Fire Rate",
+  "tooltip.roa.range": "Range",
+  "tooltip.roa.hold_shift": "Hold Shift"
 }
