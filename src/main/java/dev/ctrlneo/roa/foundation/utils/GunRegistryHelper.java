@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Helper class for registering guns with a fluent builder pattern.
@@ -39,7 +40,7 @@ public class GunRegistryHelper {
         private GunStatsComponent stats = GunStatsComponent.DEFAULT;
         private AmmoType ammoType = AmmoType.MEDIUM;
         private int magazineCapacity = 30;
-        private List<GunFireMode> availableFireModes = List.of(GunFireMode.SINGLE_FIRE);
+        private Set<GunFireMode> availableFireModes = Set.of(GunFireMode.SINGLE_FIRE);
         private GunFireMode defaultFireMode = GunFireMode.SINGLE_FIRE;
         private boolean startsLoaded = true;
 
@@ -95,7 +96,7 @@ public class GunRegistryHelper {
             if (modes.length == 0) {
                 throw new IllegalArgumentException("Must provide at least one fire mode");
             }
-            this.availableFireModes = List.of(modes);
+            this.availableFireModes = Set.of(modes);
             this.defaultFireMode = modes[0];
             return this;
         }
@@ -120,20 +121,23 @@ public class GunRegistryHelper {
          * Registers the gun with all configured components
          */
         public DeferredItem<GunItem> register() {
+            // Create the component instances
+            GunStatsComponent statsComponent = stats;
+            GunMagazineComponent magazineComponent = new GunMagazineComponent(
+                    startsLoaded ? magazineCapacity : 0,
+                    magazineCapacity,
+                    ammoType.getHolder()
+            );
+            GunFireModesComponent fireModesComponent = new GunFireModesComponent(
+                    defaultFireMode,
+                    List.copyOf(availableFireModes)
+            );
+
             return Roa.ITEMS.register(name, () -> new GunItem(
-                    new Item.Properties()
-                            .component(RoaDataComponents.GUN_STATS.get(), stats)
-                            .component(RoaDataComponents.GUN_MAGAZINE.get(), new GunMagazineComponent(
-                                    startsLoaded ? magazineCapacity : 0,
-                                    magazineCapacity,
-                                    ammoType.getHolder()
-                            ))
-                            .component(RoaDataComponents.GUN_FIRE_MODES.get(), new GunFireModesComponent(
-                                    defaultFireMode,
-                                    availableFireModes
-                            ))
-                            .component(RoaDataComponents.GUN_STATE.get(), GunStateComponent.DEFAULT)
-                            .component(RoaDataComponents.GUN_ATTACHMENTS.get(), GunAttachmentsComponent.EMPTY)
+                    new Item.Properties(),
+                    statsComponent,
+                    magazineComponent,
+                    fireModesComponent
             ));
         }
     }

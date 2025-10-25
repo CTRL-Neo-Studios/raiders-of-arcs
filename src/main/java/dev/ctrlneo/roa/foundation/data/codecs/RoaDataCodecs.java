@@ -116,61 +116,29 @@ public class RoaDataCodecs {
             );
 
     public static final Codec<AttachmentModifiersComponent> ATTACHMENT_MODIFIERS_COMPONENT_CODEC =
-            RecordCodecBuilder.create(instance -> instance.group(
-                    Codec.FLOAT.fieldOf("damage_bonus").forGetter(AttachmentModifiersComponent::damageBonus),
-                    Codec.FLOAT.fieldOf("range_bonus").forGetter(AttachmentModifiersComponent::rangeBonus),
-                    Codec.INT.fieldOf("magazine_capacity_bonus").forGetter(AttachmentModifiersComponent::magazineCapacityBonus),
-                    Codec.FLOAT.fieldOf("armor_penetration_bonus").forGetter(AttachmentModifiersComponent::armorPenetrationBonus),
-                    Codec.FLOAT.fieldOf("accuracy_multiplier").forGetter(AttachmentModifiersComponent::accuracyMultiplier),
-                    Codec.FLOAT.fieldOf("recoil_multiplier").forGetter(AttachmentModifiersComponent::recoilMultiplier),
-                    Codec.FLOAT.fieldOf("ads_speed_multiplier").forGetter(AttachmentModifiersComponent::adsSpeedMultiplier),
-                    Codec.FLOAT.fieldOf("reload_speed_multiplier").forGetter(AttachmentModifiersComponent::reloadSpeedMultiplier)
-            ).apply(instance, AttachmentModifiersComponent::new));
+            AttachmentModifiersComponent.CODEC;
 
-    // Note: Composite only supports 6 fields, so we need custom codec for the last 2
-    public static final StreamCodec<ByteBuf, AttachmentModifiersComponent> STREAM_ATTACHMENT_MODIFIERS_COMPONENT_CODEC_FULL =
-            new StreamCodec<>() {
-                @Override
-                public AttachmentModifiersComponent decode(ByteBuf buffer) {
-                    return new AttachmentModifiersComponent(
-                            buffer.readFloat(),
-                            buffer.readFloat(),
-                            buffer.readInt(),
-                            buffer.readFloat(),
-                            buffer.readFloat(),
-                            buffer.readFloat(),
-                            buffer.readFloat(),
-                            buffer.readFloat()
-                    );
-                }
-
-                @Override
-                public void encode(ByteBuf buffer, AttachmentModifiersComponent value) {
-                    buffer.writeFloat(value.damageBonus());
-                    buffer.writeFloat(value.rangeBonus());
-                    buffer.writeInt(value.magazineCapacityBonus());
-                    buffer.writeFloat(value.armorPenetrationBonus());
-                    buffer.writeFloat(value.accuracyMultiplier());
-                    buffer.writeFloat(value.recoilMultiplier());
-                    buffer.writeFloat(value.adsSpeedMultiplier());
-                    buffer.writeFloat(value.reloadSpeedMultiplier());
-                }
-            };
+    public static final StreamCodec<ByteBuf, AttachmentModifiersComponent> STREAM_ATTACHMENT_MODIFIERS_COMPONENT_CODEC =
+            AttachmentModifiersComponent.STREAM_CODEC;
 
     public static final Codec<GunAttachmentsComponent> GUN_ATTACHMENTS_COMPONENT_CODEC =
             RecordCodecBuilder.create(instance -> instance.group(
-                    ItemStack.CODEC.fieldOf("muzzle").forGetter(GunAttachmentsComponent::muzzle),
-                    ItemStack.CODEC.fieldOf("underbarrel").forGetter(GunAttachmentsComponent::underbarrel),
-                    ItemStack.CODEC.fieldOf("magazine").forGetter(GunAttachmentsComponent::magazine),
-                    ItemStack.CODEC.fieldOf("stock").forGetter(GunAttachmentsComponent::stock)
+                    ItemStack.OPTIONAL_CODEC.fieldOf("muzzle").forGetter(GunAttachmentsComponent::muzzle),
+                    ItemStack.OPTIONAL_CODEC.fieldOf("underbarrel").forGetter(GunAttachmentsComponent::underbarrel),
+                    ItemStack.OPTIONAL_CODEC.fieldOf("magazine").forGetter(GunAttachmentsComponent::magazine),
+                    ItemStack.OPTIONAL_CODEC.fieldOf("stock").forGetter(GunAttachmentsComponent::stock)
             ).apply(instance, GunAttachmentsComponent::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, GunAttachmentsComponent> STREAM_GUN_ATTACHMENTS_COMPONENT_CODEC =
             StreamCodec.composite(
-                    ItemStack.STREAM_CODEC, GunAttachmentsComponent::muzzle,
-                    ItemStack.STREAM_CODEC, GunAttachmentsComponent::underbarrel,
-                    ItemStack.STREAM_CODEC, GunAttachmentsComponent::magazine,
-                    ItemStack.STREAM_CODEC, GunAttachmentsComponent::stock,
+                    ItemStack.OPTIONAL_STREAM_CODEC, GunAttachmentsComponent::muzzle,
+                    ItemStack.OPTIONAL_STREAM_CODEC, GunAttachmentsComponent::underbarrel,
+                    ItemStack.OPTIONAL_STREAM_CODEC, GunAttachmentsComponent::magazine,
+                    ItemStack.OPTIONAL_STREAM_CODEC, GunAttachmentsComponent::stock,
                     GunAttachmentsComponent::new
             );
+
+    public static void register() {
+
+    }
 }

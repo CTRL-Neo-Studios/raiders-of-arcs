@@ -1,4 +1,4 @@
-package dev.ctrlneo.roa.foundation.network;
+package dev.ctrlneo.roa.foundation;
 
 import dev.ctrlneo.roa.Roa;
 import dev.ctrlneo.roa.foundation.network.packets.*;
@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 public class RoaPackets {
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(Roa.MOD_ID)
+        PayloadRegistrar registrar = event.registrar(Roa.MODID)
                 .versioned("1.0")
                 .optional();
 

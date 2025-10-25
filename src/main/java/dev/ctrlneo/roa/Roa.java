@@ -1,23 +1,15 @@
 package dev.ctrlneo.roa;
 
 import com.mojang.logging.LogUtils;
-import dev.ctrlneo.roa.foundation.RoaDataComponents;
-import dev.ctrlneo.roa.foundation.RoaItems;
-import dev.ctrlneo.roa.foundation.network.RoaPackets;
+import dev.ctrlneo.roa.foundation.*;
+import dev.ctrlneo.roa.foundation.data.codecs.RoaDataCodecs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -30,9 +22,7 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
-import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.slf4j.Logger;
 
@@ -40,71 +30,81 @@ import org.slf4j.Logger;
 public class Roa {
     public static final String MODID = "roa";
     private static final Logger LOGGER = LogUtils.getLogger();
+
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MODID);
+    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(Registries.ENTITY_TYPE, Roa.MODID);
 
-    // Creates a creative tab with the id "roa:example_tab" for the example item, that is placed after the combat tab
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
-            .title(Component.translatable("itemGroup.roa"))
-            .withTabsBefore(CreativeModeTabs.COMBAT)
-            .icon(() -> RoaItems.HEAVY_AMMO.get().getDefaultInstance())
-            .displayItems((parameters, output) -> {
-                output.accept(RoaItems.HEAVY_AMMO.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
-            }).build());
-
-    // The constructor for the mod class is the first code that is run when your mod is loaded.
-    // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public Roa(IEventBus modEventBus, ModContainer modContainer) {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+        RoaItems.register();
+        RoaDataComponents.register();
+        RoaKeybinds.register();
+        RoaDataCodecs.register();
+        RoaEntityTypes.register();
+        RoaEntities.register();
 
+
+        // IMPORTANT: Register data components FIRST, before items
         DATA_COMPONENTS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so blocks get registered
+        ENTITY_TYPES.register(modEventBus);
+
+        // Register blocks, items, and creative tabs
         BLOCKS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so items get registered
         ITEMS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
 
-        // Register ourselves for server and other game events we are interested in.
-        // Note that this is necessary if and only if we want *this* class (Roa) to respond directly to events.
-        // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
+        // Register ourselves for server and other game events
         NeoForge.EVENT_BUS.register(this);
 
-        // Register the item to a creative tab
+        // Register packets
         modEventBus.addListener(RoaPackets::register);
 
-        // Register our mod's ModConfigSpec so that FML can create and load the config file for us
-        modContainer.registerConfig(ModConfig.Type.CLIENT, Config.SPEC);
+        // Register configs
+        modContainer.registerConfig(ModConfig.Type.CLIENT, RoaConfig.CLIENT_SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, RoaConfig.COMMON_SPEC);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
-
-        if (Config.logDirtBlock)
-            LOGGER.info("DIRT BLOCK >> {}", BuiltInRegistries.BLOCK.getKey(Blocks.DIRT));
-
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
-
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
     }
 
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        // Do something when the server starts
         LOGGER.info("HELLO from server starting");
     }
 
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
+    @EventBusSubscriber(modid = MODID)
+    public static class ModEvents {
+        // Optional: Add items to vanilla creative tabs
+        @SubscribeEvent
+        public static void buildContents(BuildCreativeModeTabContentsEvent event) {
+            // Add guns to combat tab
+//            if (event.getTabKey() == CreativeModeTabs.COMBAT) {
+//                event.accept(RoaItems.KETTLE);
+//                event.accept(RoaItems.RATTLER);
+//            }
+//
+//            // Add ammo to ingredients tab
+//            if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+//                event.accept(RoaItems.LIGHT_AMMO);
+//                event.accept(RoaItems.MEDIUM_AMMO);
+//                event.accept(RoaItems.HEAVY_AMMO);
+//                event.accept(RoaItems.SHOTGUN_AMMO);
+//                event.accept(RoaItems.LAUNCHER_AMMO);
+//                event.accept(RoaItems.ENERGY_CLIP);
+//            }
+        }
+    }
+
     @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
     public static class ClientModEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            // Some client setup code
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
         }

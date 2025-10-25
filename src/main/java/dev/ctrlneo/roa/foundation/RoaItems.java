@@ -6,7 +6,12 @@ import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import dev.ctrlneo.roa.foundation.utils.GunRegistryHelper;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 public class RoaItems {
@@ -28,6 +33,28 @@ public class RoaItems {
             .ammo(AmmoType.MEDIUM, 20)
             .fireModes(GunFireMode.AUTOMATIC_FIRE, GunFireMode.SINGLE_FIRE)
             .startsEmpty()
-            .stats(2f, 0.8f, 1.0f, 0.5f, 600, 30, 0.2f, 0.1f, 0.1f, 3.5f)
+            .stats(2f, 0.8f, 1.0f, 0.5f, 600, 56, 0.2f, 0.1f, 0.1f, 3.5f)
             .register();
+
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ROA_TAB =
+            Roa.CREATIVE_MODE_TABS.register("roa_tab", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.roa"))
+                    .withTabsBefore(CreativeModeTabs.COMBAT)
+                    .icon(() -> RoaItems.HEAVY_AMMO.get().getDefaultInstance()) // This is fine now
+                    .displayItems((parameters, output) -> {
+                        output.accept(RoaItems.LIGHT_AMMO);
+                        output.accept(RoaItems.MEDIUM_AMMO);
+                        output.accept(RoaItems.HEAVY_AMMO);
+                        output.accept(RoaItems.SHOTGUN_AMMO);
+                        output.accept(RoaItems.LAUNCHER_AMMO);
+                        output.accept(RoaItems.ENERGY_CLIP);
+
+                        // Add guns with default components (loaded or empty as configured)
+                        output.accept(RoaItems.KETTLE.get().getDefaultInstance());
+                        output.accept(RoaItems.RATTLER.get().getDefaultInstance());
+                    }).build());
+
+    public static void register() {
+
+    }
 }

@@ -15,11 +15,10 @@ public class RoaKeybinds {
 
     public static final String CATEGORY = "key.categories.roa";
 
-    // Keybindings
     public static KeyMapping RELOAD;
     public static KeyMapping FIRE_MODE_CYCLE;
     public static KeyMapping AIM_DOWN_SIGHTS;
-    public static KeyMapping OPEN_ATTACHMENTS;  // NEW!
+    public static KeyMapping OPEN_ATTACHMENTS;
 
     @SubscribeEvent
     public static void registerKeys(RegisterKeyMappingsEvent event) {
@@ -59,5 +58,9 @@ public class RoaKeybinds {
         event.register(FIRE_MODE_CYCLE);
         event.register(AIM_DOWN_SIGHTS);
         event.register(OPEN_ATTACHMENTS);
+    }
+
+    public static void register() {
+
     }
 }

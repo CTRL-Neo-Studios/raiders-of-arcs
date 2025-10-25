@@ -55,6 +55,14 @@ public class GunUtils {
     }
 
     /**
+     * Gets a gun with its registered default components (including starting ammo if configured)
+     */
+    public static ItemStack getGunWithDefaults(GunItem gunItem) {
+        // This just returns the default instance which has all components as registered
+        return gunItem.getDefaultInstance();
+    }
+
+    /**
      * Gets the effective stats of a gun including attachment modifiers
      */
     public static GunStatsComponent getEffectiveStats(ItemStack gunStack) {
@@ -71,15 +79,10 @@ public class GunUtils {
     }
 
     /**
-     * Strips all attachments from a gun and returns them
+     * Gets base stats without attachment modifiers
      */
-    public static Map<AttachmentSlot, ItemStack> removeAllAttachments(ItemStack gunStack) {
-        GunAttachmentsComponent attachments = gunStack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
-        if (attachments == null) return Map.of();
-
-        Map<AttachmentSlot, ItemStack> removed = attachments.getAllAttachments();
-        gunStack.set(RoaDataComponents.GUN_ATTACHMENTS.get(), GunAttachmentsComponent.EMPTY);
-
-        return removed;
+    public static GunStatsComponent getBaseStats(ItemStack gunStack) {
+        return gunStack.getOrDefault(RoaDataComponents.GUN_STATS.get(), GunStatsComponent.DEFAULT);
     }
+
 }

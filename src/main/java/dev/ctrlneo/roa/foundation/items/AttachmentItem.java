@@ -1,7 +1,7 @@
 package dev.ctrlneo.roa.foundation.items;
 
+import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.data.components.AttachmentModifiersComponent;
-import dev.ctrlneo.roa.foundation.data.components.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.data.structures.AttachmentSlot;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

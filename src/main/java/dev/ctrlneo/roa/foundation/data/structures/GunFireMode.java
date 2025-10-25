@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 
 public enum GunFireMode implements StringRepresentable {
     SINGLE_FIRE("single_fire", 0, "Single Fire", false, 1),
-    BURST2_FIRE("2_round_burst_fire", 1, "2-Round Burst Fire", true, 3),
-    BURST3_FIRE("3_round_burst_fire", 1, "3-Round Burst Fire", true, 3),
-    AUTOMATIC_FIRE("automatic_fire", 2, "Automatic Fire", true, -1); // -1 for continuous
+    BURST2_FIRE("2_round_burst_fire", 1, "2-Round Burst Fire", true, 2),
+    BURST3_FIRE("3_round_burst_fire", 2, "3-Round Burst Fire", true, 3),
+    AUTOMATIC_FIRE("automatic_fire", 3, "Automatic Fire", true, -1); // -1 for continuous
 
     public static final Codec<GunFireMode> CODEC = StringRepresentable.fromEnum(GunFireMode::values);
     public static final StreamCodec<ByteBuf, GunFireMode> STREAM_CODEC =

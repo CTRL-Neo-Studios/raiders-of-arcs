@@ -51,8 +51,12 @@ public class RoaDataComponents {
             Roa.DATA_COMPONENTS.register("attachment_modifiers", () ->
                     DataComponentType.<AttachmentModifiersComponent>builder()
                             .persistent(RoaDataCodecs.ATTACHMENT_MODIFIERS_COMPONENT_CODEC)
-                            .networkSynchronized(RoaDataCodecs.STREAM_ATTACHMENT_MODIFIERS_COMPONENT_CODEC_FULL)
+                            .networkSynchronized(RoaDataCodecs.STREAM_ATTACHMENT_MODIFIERS_COMPONENT_CODEC)
                             .cacheEncoding()
                             .build());
 
+
+    public static void register() {
+
+    }
 }
