@@ -27,7 +27,7 @@
 							"vector": [2.5, 0, 0],
 							"easing": "easeOutCubic"
 						},
-						"0.1667": {
+						"0.0833": {
 							"vector": [0, 0, 0],
 							"easing": "easeOutCubic"
 						}
@@ -40,7 +40,7 @@
 							"vector": [0, 0, 2],
 							"easing": "linear"
 						},
-						"0.1667": {
+						"0.0833": {
 							"vector": [0, 0, 0],
 							"easing": "easeInCubic"
 						}
@@ -56,7 +56,7 @@
 						"vector": [0, 0, 45]
 					},
 					"position": {
-						"vector": [-2, -2, 0]
+						"vector": [-6, 2, 0]
 					}
 				}
 			}
@@ -68,27 +68,29 @@
 				"weaponbody": {
 					"rotation": {
 						"0.0": {
-							"vector": [0, 0, 45]
+							"vector": [0, 0, 45],
+							"easing": "easeOutCubic"
 						},
 						"0.0417": {
 							"vector": [1.76833, -1.76749, 44.97272],
 							"easing": "easeOutCubic"
 						},
-						"0.1667": {
+						"0.0833": {
 							"vector": [0, 0, 45],
 							"easing": "easeOutCubic"
 						}
 					},
 					"position": {
 						"0.0": {
-							"vector": [-2, -2, 1]
-						},
-						"0.0417": {
-							"vector": [-2, -2, 1.5],
+							"vector": [-6, 2, 1],
 							"easing": "easeOutCubic"
 						},
-						"0.1667": {
-							"vector": [-2, -2, 0],
+						"0.0417": {
+							"vector": [-6, 2, 1.5],
+							"easing": "easeOutCubic"
+						},
+						"0.0833": {
+							"vector": [-6, 2, 0],
 							"easing": "easeInCubic"
 						}
 					}

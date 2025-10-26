@@ -23,7 +23,7 @@ public class RecoilManager {
         // Reduce recoil when aiming down sights
         float adsMultiplier = 1.0f;
         if (AdsStateManager.isPlayerAiming()) {
-            adsMultiplier = 0.5f; // 50% less recoil when ADS
+            adsMultiplier = 0.8f; // 20% less recoil when ADS
         }
 
         // Accumulate recoil (pitch is NEGATIVE for upward in Minecraft!)

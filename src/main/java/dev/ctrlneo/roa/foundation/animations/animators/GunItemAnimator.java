@@ -13,15 +13,15 @@ public class GunItemAnimator extends AzItemAnimator {
 
     public GunItemAnimator(String name) {
         super();
-        ANIMATIONS = Reference.of("animations/items/weapons/%s.animation.json", name);
+        ANIMATIONS = Reference.of("animations/item/weapons/%s.animation.json", name);
     }
 
     @Override
     public void registerControllers(AzAnimationControllerContainer<ItemStack> animationControllerContainer) {
         animationControllerContainer.add(
                 AzAnimationController.builder(this, "base_controller")
-                        .build()
-        );
+                        .setTransitionLength(0)
+                        .build());
     }
 
     @Override
