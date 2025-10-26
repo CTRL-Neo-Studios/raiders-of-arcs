@@ -6,9 +6,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 
 public class GunItemDispatcher {
-    private static final AzCommand IDLE_COMMAND = AzCommand.create("base_controller", "idle", AzPlayBehaviors.LOOP);
-    private static final AzCommand AIM_COMMAND = AzCommand.create("base_controller", "aim", AzPlayBehaviors.LOOP);
-    private static final AzCommand SPRINT_COMMAND = AzCommand.create("base_controller", "sprinting", AzPlayBehaviors.LOOP);
+    private static final AzCommand IDLE_COMMAND = AzCommand.create("base_controller", "idle", AzPlayBehaviors.PLAY_ONCE);
+    private static final AzCommand AIM_COMMAND = AzCommand.create("base_controller", "aim", AzPlayBehaviors.PLAY_ONCE);
+    private static final AzCommand SPRINT_COMMAND = AzCommand.create("base_controller", "sprinting", AzPlayBehaviors.PLAY_ONCE);
     private static final AzCommand FIRE_COMMAND = AzCommand.create("base_controller", "fire", AzPlayBehaviors.PLAY_ONCE);
     private static final AzCommand AIM_FIRE_COMMAND = AzCommand.create("base_controller", "aim_fire", AzPlayBehaviors.PLAY_ONCE);
     private static final AzCommand RELOAD_COMMAND = AzCommand.create("base_controller", "reload", AzPlayBehaviors.PLAY_ONCE);
