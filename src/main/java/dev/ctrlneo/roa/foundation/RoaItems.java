@@ -29,7 +29,7 @@ public class RoaItems {
             .fireModes(GunFireMode.SINGLE_FIRE)
             .startsEmpty()
             .gunRenderer()
-            .stats(3f, 0.8f, 1.5f, 1f, 350, 30, 0.2f, 0.1f, 0.1f, 5.0f)
+            .stats(3f, 0.8f, 30, 20, 350, 30, 0.2f, 0.1f, 0.1f, 5.0f)
             .register();
 
     public static final DeferredItem<GunItem> RATTLER = GunRegistryHelper.gun("rattler")

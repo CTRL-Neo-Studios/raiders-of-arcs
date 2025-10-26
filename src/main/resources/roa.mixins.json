@@ -11,7 +11,8 @@
     "GuiMixin",
     "ItemInHandRendererMixin",
     "MinecraftMixin",
-    "MouseHandlerMixin"
+    "MouseHandlerMixin",
+    "WeaponTPRenderingMixin"
   ],
   "injectors": {
     "defaultRequire": 1

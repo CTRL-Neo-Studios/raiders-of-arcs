@@ -1,5 +1,6 @@
 package dev.ctrlneo.roa.foundation.items;
 
+import com.mojang.logging.LogUtils;
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.RoaPackets;
 import dev.ctrlneo.roa.foundation.animations.dispatchers.GunItemDispatcher;
@@ -27,11 +28,14 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Map;
 
 public class GunItem extends Item {
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final boolean DEBUG = true; // Set to false to disable debug logs
 
     // Store default components in the class
     private final GunStatsComponent defaultStats;
@@ -40,9 +44,9 @@ public class GunItem extends Item {
     public final GunItemDispatcher dispatcher;
 
     public GunItem(Properties properties,
-                   GunStatsComponent stats,
-                   GunMagazineComponent magazine,
-                   GunFireModesComponent fireModes) {
+            GunStatsComponent stats,
+            GunMagazineComponent magazine,
+            GunFireModesComponent fireModes) {
         super(properties.stacksTo(1));
         this.defaultStats = stats;
         this.defaultMagazine = magazine;
@@ -124,8 +128,12 @@ public class GunItem extends Item {
 
         // Fire animations
         if (AdsStateManager.isPlayerAiming()) {
+            if (DEBUG)
+                LOGGER.info("[GunAnimator] ONE-SHOT: AIM_FIRE animation triggered");
             dispatcher.aimFire(player, stack);
         } else {
+            if (DEBUG)
+                LOGGER.info("[GunAnimator] ONE-SHOT: FIRE animation triggered");
             dispatcher.fire(player, stack);
         }
 
@@ -139,8 +147,7 @@ public class GunItem extends Item {
                     false,
                     0,
                     currentTime,
-                    0
-            ));
+                    0));
         }
 
         stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
@@ -158,8 +165,8 @@ public class GunItem extends Item {
         float baseYawRecoil = stats.recoilHorizontal();
 
         // Add randomness for realistic feel
-        float pitchRecoil = basePitchRecoil * (0.8f + player.getRandom().nextFloat() * 0.4f);
-        float yawRecoil = baseYawRecoil * (player.getRandom().nextFloat() - 0.5f) * 2.0f;
+        float pitchRecoil = basePitchRecoil * (0.8f + player.getRandom().nextFloat()) * 2.0f;
+        float yawRecoil = baseYawRecoil * (0.8f + player.getRandom().nextFloat()) * 2.0f * (player.getRandom().nextBoolean() ? -1 : 1);
 
         // Reduce recoil when aiming (check if player is aiming on client)
         // Note: You might want to sync ADS state to server if you want this
@@ -180,8 +187,7 @@ public class GunItem extends Item {
                 stats.damage(),
                 stats.range(),
                 stats.armorPenetration(),
-                true
-        );
+                true);
 
         Vec3 eyePos = player.getEyePosition(1.0f);
         Vec3 lookVec = player.getLookAngle();
@@ -202,8 +208,7 @@ public class GunItem extends Item {
                 SoundEvents.GENERIC_EXPLODE,
                 SoundSource.PLAYERS,
                 0.5f,
-                1.0f + (player.getRandom().nextFloat() - 0.5f) * 0.2f
-        );
+                1.0f + (player.getRandom().nextFloat() - 0.5f) * 0.2f);
     }
 
     private void playEmptySound(Level level, Player player) {
@@ -245,6 +250,8 @@ public class GunItem extends Item {
         // Play reload start sound
         player.playSound(SoundEvents.PISTON_EXTEND, 0.8f, 1.0f);
 
+        if (DEBUG)
+            LOGGER.info("[GunAnimator] ONE-SHOT: RELOAD animation triggered");
         dispatcher.reload(player, stack);
     }
 
@@ -269,21 +276,20 @@ public class GunItem extends Item {
 
         stack.set(
                 RoaDataComponents.GUN_FIRE_MODES.get(),
-                new GunFireModesComponent(nextMode, List.copyOf(availableModes))
-        );
+                new GunFireModesComponent(nextMode, List.copyOf(availableModes)));
 
         if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.displayClientMessage(
                     Component.translatable("gui.roa.fire_mode_changed", nextMode.getDisplayName()),
-                    true
-            );
+                    true);
         }
 
         player.playSound(SoundEvents.WOODEN_BUTTON_CLICK_ON, 0.5f, 1.5f);
     }
 
     @Override
-    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
+    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId,
+            boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
 
         if (!(entity instanceof Player player)) {
@@ -326,8 +332,7 @@ public class GunItem extends Item {
                             Component.translatable("gui.roa.reloaded",
                                     magazine.currentAmmo(),
                                     magazine.getEffectiveCapacity(attachments)),
-                            true
-                    );
+                            true);
                 }
             }
         }
@@ -355,7 +360,8 @@ public class GunItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents,
+            TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
 
         // Ensure components exist before reading
@@ -371,15 +377,13 @@ public class GunItem extends Item {
             int maxDurability = stack.getMaxDamage();
             float durabilityPercent = (float) durability / maxDurability * 100;
 
-            ChatFormatting durabilityColor = durabilityPercent > 50 ? ChatFormatting.GREEN :
-                    durabilityPercent > 25 ? ChatFormatting.YELLOW :
-                            ChatFormatting.RED;
+            ChatFormatting durabilityColor = durabilityPercent > 50 ? ChatFormatting.GREEN
+                    : durabilityPercent > 25 ? ChatFormatting.YELLOW : ChatFormatting.RED;
 
             tooltipComponents.add(Component.translatable(
                     "item.durability",
                     durability,
-                    maxDurability
-            ).withStyle(durabilityColor));
+                    maxDurability).withStyle(durabilityColor));
         }
 
         // Magazine info
@@ -387,39 +391,35 @@ public class GunItem extends Item {
         tooltipComponents.add(Component.translatable(
                 "tooltip.roa.ammo",
                 magazine.currentAmmo(),
-                effectiveCapacity
-        ).withStyle(magazine.currentAmmo() == 0 ? ChatFormatting.RED : ChatFormatting.GRAY));
+                effectiveCapacity).withStyle(magazine.currentAmmo() == 0 ? ChatFormatting.RED : ChatFormatting.GRAY));
 
         if (effectiveCapacity > magazine.baseCapacity()) {
             int bonus = effectiveCapacity - magazine.baseCapacity();
             tooltipComponents.add(Component.translatable(
                     "tooltip.roa.extended_mag_bonus",
-                    bonus
-            ).withStyle(ChatFormatting.GREEN));
+                    bonus).withStyle(ChatFormatting.GREEN));
         }
 
         // Fire mode info
         tooltipComponents.add(Component.translatable(
                 "tooltip.roa.fire_mode",
-                modes.currentMode().getDisplayName()
-        ).withStyle(ChatFormatting.GRAY));
+                modes.currentMode().getDisplayName()).withStyle(ChatFormatting.GRAY));
 
         // Show reload status
         GunStateComponent state = stack.get(RoaDataComponents.GUN_STATE.get());
         if (state != null && state.isReloading()) {
             GunStatsComponent stats = GunUtils.getEffectiveStats(stack);
-            long currentTime = net.minecraft.client.Minecraft.getInstance().level != null ?
-                    net.minecraft.client.Minecraft.getInstance().level.getGameTime() : 0;
+            long currentTime = net.minecraft.client.Minecraft.getInstance().level != null
+                    ? net.minecraft.client.Minecraft.getInstance().level.getGameTime()
+                    : 0;
             float progress = state.getReloadProgress(currentTime, stats.getReloadTicks());
 
             tooltipComponents.add(Component.translatable(
                     "tooltip.roa.reloading",
-                    String.format("%.0f%%", progress * 100)
-            ).withStyle(ChatFormatting.YELLOW));
+                    String.format("%.0f%%", progress * 100)).withStyle(ChatFormatting.YELLOW));
         }
 
         tooltipComponents.add(Component.empty());
-
 
         // Attachments
         if (attachments.hasAnyAttachments()) {
@@ -430,8 +430,7 @@ public class GunItem extends Item {
             for (Map.Entry<AttachmentSlot, ItemStack> entry : allAttachments.entrySet()) {
                 tooltipComponents.add(Component.literal("  ")
                         .append(Component.translatable(
-                                "tooltip.roa.attachment_slot." + entry.getKey().getSerializedName()
-                        ))
+                                "tooltip.roa.attachment_slot." + entry.getKey().getSerializedName()))
                         .append(": ")
                         .append(entry.getValue().getHoverName())
                         .withStyle(ChatFormatting.GRAY));
@@ -449,7 +448,8 @@ public class GunItem extends Item {
 
             addStatLine(tooltipComponents, "damage", baseStats.damage(), effectiveStats.damage());
             addStatLine(tooltipComponents, "accuracy", baseStats.accuracy() * 100, effectiveStats.accuracy() * 100);
-            addStatLine(tooltipComponents, "fire_rate", (float)baseStats.fireRate(), (float)effectiveStats.fireRate());
+            addStatLine(tooltipComponents, "fire_rate", (float) baseStats.fireRate(),
+                    (float) effectiveStats.fireRate());
             addStatLine(tooltipComponents, "range", baseStats.range(), effectiveStats.range());
             addStatLine(tooltipComponents, "recoil", baseStats.recoilVertical(), effectiveStats.recoilVertical());
             addStatLine(tooltipComponents, "ads_speed", baseStats.adsSpeed(), effectiveStats.adsSpeed());
@@ -458,8 +458,8 @@ public class GunItem extends Item {
             if (effectiveStats.armorPenetration() > 0) {
                 tooltipComponents.add(Component.translatable(
                         "tooltip.roa.armor_penetration",
-                        String.format("%.0f%%", effectiveStats.armorPenetration() * 100)
-                ).withStyle(ChatFormatting.YELLOW));
+                        String.format("%.0f%%", effectiveStats.armorPenetration() * 100))
+                        .withStyle(ChatFormatting.YELLOW));
             }
         } else {
             tooltipComponents.add(Component.translatable("tooltip.roa.hold_shift")
@@ -514,15 +514,13 @@ public class GunItem extends Item {
                             pos.x,
                             pos.y,
                             pos.z,
-                            attachmentStack.copy()
-                    );
+                            attachmentStack.copy());
 
                     // Add some random velocity for scatter effect
                     droppedAttachment.setDeltaMovement(
                             (level.random.nextFloat() - 0.5) * 0.2,
                             0.2,
-                            (level.random.nextFloat() - 0.5) * 0.2
-                    );
+                            (level.random.nextFloat() - 0.5) * 0.2);
 
                     level.addFreshEntity(droppedAttachment);
                 }
@@ -535,8 +533,7 @@ public class GunItem extends Item {
                     SoundEvents.ITEM_BREAK,
                     SoundSource.PLAYERS,
                     1.0f,
-                    1.0f
-            );
+                    1.0f);
         }
     }
 }

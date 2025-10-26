@@ -44,7 +44,7 @@ public class ClientTickHandler {
         ItemStack mainHandStack = player.getMainHandItem();
         ItemStack prevMainHandStack = getPreviousMainHandStack(player);
 
-        if (!(mainHandStack.getItem() instanceof GunItem gunItem)) {
+        if (!(mainHandStack.getItem() instanceof GunItem)) {
             // Reset ADS state if not holding a gun
             AdsStateManager.reset();
             RecoilManager.reset(); // Reset recoil too
@@ -56,6 +56,9 @@ public class ClientTickHandler {
 
             return;
         }
+
+        // At this point we know we're holding a gun
+        GunItem gunItem = (GunItem) mainHandStack.getItem();
 
         // Check if we switched items while reloading
         if (!ItemStack.isSameItem(mainHandStack, prevMainHandStack)) {
@@ -73,6 +76,9 @@ public class ClientTickHandler {
 
         // Update recoil (CLIENT-SIDE)
         RecoilManager.updateRecoil();
+
+        // Update gun animations based on player state
+        GunAnimationStateManager.updateAnimationState(player, mainHandStack, gunItem);
 
         // Check reload completion
         checkReloadCompletion(mainHandStack, player);
@@ -135,9 +141,12 @@ public class ClientTickHandler {
                         Component.translatable("gui.roa.reloaded",
                                 magazine.currentAmmo(),
                                 magazine.getEffectiveCapacity(attachments)),
-                        true
-                );
+                        true);
             }
+
+            // Transition animation back to appropriate state
+            // The GunAnimationStateManager will pick the right animation on next tick
+            // (idle, aim, or sprint depending on what player is doing)
         }
     }
 

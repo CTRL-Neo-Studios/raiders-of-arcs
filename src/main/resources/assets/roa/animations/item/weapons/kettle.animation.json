@@ -3,14 +3,24 @@
 	"animations": {
 		"idle": {
 			"loop": true,
-			"override_previous_animation": true,
+			"animation_length": 0.1,
 			"bones": {
 				"weaponbody": {
 					"rotation": {
-						"vector": [0, 0, 0]
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.1": {
+							"vector": [0, 0, 0]
+						}
 					},
 					"position": {
-						"vector": [0, 0, 0]
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.1": {
+							"vector": [0, 0, 0]
+						}
 					}
 				}
 			}
@@ -18,7 +28,74 @@
 		"sprinting": {
 			"loop": true,
 			"animation_length": 0.55,
-			"override_previous_animation": true,
+			"bones": {
+				"weaponbody": {
+					"rotation": {
+						"0.0": {
+							"vector": [33.15724, 30.51737, 28.56198]
+						},
+						"0.2": {
+							"vector": [21.02381, 35.94021, 33.40514],
+							"easing": "easeInOutCubic"
+						},
+						"0.25": {
+							"vector": [21.13171, 35.89235, 37.36459]
+						},
+						"0.4667": {
+							"vector": [29.0167, 32.39483, 30.4012],
+							"easing": "easeInOutCubic"
+						},
+						"0.5": {
+							"vector": [30.053, 31.91494, 28.95275]
+						},
+						"0.55": {
+							"vector": [33.15724, 30.51737, 28.56198]
+						}
+					},
+					"position": {
+						"0.0": {
+							"vector": [-5.6, -2.3, 0],
+							"easing": "easeInSine"
+						},
+						"0.1333": {
+							"vector": [-9, -3, 0],
+							"easing": "easeInSine"
+						},
+						"0.2": {
+							"vector": [-10.7, -1.5, 0],
+							"easing": "easeInSine"
+						},
+						"0.25": {
+							"vector": [-11.2, -1.8, 0],
+							"easing": "easeOutSine"
+						},
+						"0.3": {
+							"vector": [-11, -2.6, 0],
+							"easing": "easeInOutSine"
+						},
+						"0.4": {
+							"vector": [-9, -3, 0],
+							"easing": "easeInSine"
+						},
+						"0.4667": {
+							"vector": [-6, -1, 0],
+							"easing": "easeOutSine"
+						},
+						"0.5": {
+							"vector": [-5.4, -1.2, 0],
+							"easing": "easeOutSine"
+						},
+						"0.55": {
+							"vector": [-5.6, -2.3, 0],
+							"easing": "easeInSine"
+						}
+					}
+				}
+			}
+		},
+		"reload": {
+			"loop": true,
+			"animation_length": 0.55,
 			"bones": {
 				"weaponbody": {
 					"rotation": {
@@ -85,7 +162,8 @@
 			}
 		},
 		"fire": {
-			"animation_length": 0.2,
+			"loop": true,
+			"animation_length": 0.0667,
 			"override_previous_animation": true,
 			"bones": {
 				"weaponbody": {
@@ -93,11 +171,11 @@
 						"0.0": {
 							"vector": [0, 0, 0]
 						},
-						"0.0667": {
+						"0.0167": {
 							"vector": [2.5, 0, 0],
 							"easing": "easeOutCubic"
 						},
-						"0.2": {
+						"0.0667": {
 							"vector": [0, 0, 0],
 							"easing": "easeOutCubic"
 						}
@@ -106,11 +184,11 @@
 						"0.0": {
 							"vector": [0, 0, 1.5]
 						},
-						"0.0667": {
+						"0.0167": {
 							"vector": [0, 0, 2],
 							"easing": "linear"
 						},
-						"0.2": {
+						"0.0667": {
 							"vector": [0, 0, 0],
 							"easing": "easeInCubic"
 						}
@@ -120,20 +198,31 @@
 		},
 		"aim": {
 			"loop": true,
-			"override_previous_animation": true,
+			"animation_length": 0.1,
 			"bones": {
 				"weaponbody": {
 					"rotation": {
-						"vector": [0, 0, 45]
+						"0.0": {
+							"vector": [0, 0, 45]
+						},
+						"0.1": {
+							"vector": [0, 0, 45]
+						}
 					},
 					"position": {
-						"vector": [-6, 2, 0]
+						"0.0": {
+							"vector": [-6, 2, 0]
+						},
+						"0.1": {
+							"vector": [-6, 2, 0]
+						}
 					}
 				}
 			}
 		},
 		"aim_fire": {
-			"animation_length": 0.1333,
+			"loop": true,
+			"animation_length": 0.0667,
 			"override_previous_animation": true,
 			"bones": {
 				"weaponbody": {
@@ -142,11 +231,11 @@
 							"vector": [0, 0, 45],
 							"easing": "easeOutCubic"
 						},
-						"0.05": {
+						"0.0167": {
 							"vector": [1.76833, -1.76749, 44.97272],
 							"easing": "easeOutCubic"
 						},
-						"0.1333": {
+						"0.0667": {
 							"vector": [0, 0, 45],
 							"easing": "easeOutCubic"
 						}
@@ -156,11 +245,11 @@
 							"vector": [-6, 2, 1],
 							"easing": "easeOutCubic"
 						},
-						"0.05": {
+						"0.0167": {
 							"vector": [-6, 2, 1.5],
 							"easing": "easeOutCubic"
 						},
-						"0.1333": {
+						"0.0667": {
 							"vector": [-6, 2, 0],
 							"easing": "easeInCubic"
 						}

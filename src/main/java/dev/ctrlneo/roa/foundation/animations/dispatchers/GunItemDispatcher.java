@@ -24,6 +24,13 @@ public class GunItemDispatcher {
 
     public void aim(Entity entity, ItemStack itemStack) {
         AIM_COMMAND.sendForItem(entity, itemStack);
+        AIM_COMMAND.sendForItem(entity, itemStack);
+        AIM_COMMAND.sendForItem(entity, itemStack);
+        AIM_COMMAND.sendForItem(entity, itemStack);
+        AIM_COMMAND.sendForItem(entity, itemStack);
+        AIM_COMMAND.sendForItem(entity, itemStack);
+        AIM_COMMAND.sendForItem(entity, itemStack);
+        AIM_COMMAND.sendForItem(entity, itemStack);
     }
 
     public void aimFire(Entity entity, ItemStack itemStack) {
@@ -32,6 +39,13 @@ public class GunItemDispatcher {
     }
 
     public void sprint(Entity entity, ItemStack itemStack) {
+        SPRINT_COMMAND.sendForItem(entity, itemStack);
+        SPRINT_COMMAND.sendForItem(entity, itemStack);
+        SPRINT_COMMAND.sendForItem(entity, itemStack);
+        SPRINT_COMMAND.sendForItem(entity, itemStack);
+        SPRINT_COMMAND.sendForItem(entity, itemStack);
+        SPRINT_COMMAND.sendForItem(entity, itemStack);
+        SPRINT_COMMAND.sendForItem(entity, itemStack);
         SPRINT_COMMAND.sendForItem(entity, itemStack);
     }
 
