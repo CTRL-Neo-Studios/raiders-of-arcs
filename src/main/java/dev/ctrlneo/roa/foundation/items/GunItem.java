@@ -2,6 +2,8 @@ package dev.ctrlneo.roa.foundation.items;
 
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.RoaPackets;
+import dev.ctrlneo.roa.foundation.animations.dispatchers.GunItemDispatcher;
+import dev.ctrlneo.roa.foundation.client.AdsStateManager;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.AttachmentSlot;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
@@ -35,6 +37,7 @@ public class GunItem extends Item {
     private final GunStatsComponent defaultStats;
     private final GunMagazineComponent defaultMagazine;
     private final GunFireModesComponent defaultFireModes;
+    public final GunItemDispatcher dispatcher;
 
     public GunItem(Properties properties,
                    GunStatsComponent stats,
@@ -44,6 +47,7 @@ public class GunItem extends Item {
         this.defaultStats = stats;
         this.defaultMagazine = magazine;
         this.defaultFireModes = fireModes;
+        this.dispatcher = new GunItemDispatcher();
     }
 
     @Override
@@ -92,6 +96,7 @@ public class GunItem extends Item {
             stack.set(RoaDataComponents.GUN_STATE.get(), state.cancelReload());
             player.getCooldowns().removeCooldown(this);
             player.playSound(SoundEvents.ITEM_BREAK, 0.5f, 1.2f);
+            dispatcher.idle(player, stack);
             return;
         }
 
@@ -116,6 +121,13 @@ public class GunItem extends Item {
 
         // Fire the gun!
         fireProjectile(level, player, stack, stats);
+
+        // Fire animations
+        if (AdsStateManager.isPlayerAiming()) {
+            dispatcher.aimFire(player, stack);
+        } else {
+            dispatcher.fire(player, stack);
+        }
 
         // Update components
         stack.set(RoaDataComponents.GUN_MAGAZINE.get(), magazine.consume(1));
@@ -232,6 +244,8 @@ public class GunItem extends Item {
 
         // Play reload start sound
         player.playSound(SoundEvents.PISTON_EXTEND, 0.8f, 1.0f);
+
+        dispatcher.reload(player, stack);
     }
 
     public void cycleFireMode(ItemStack stack, Player player) {

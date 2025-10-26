@@ -28,6 +28,7 @@ public class RoaItems {
             .ammo(AmmoType.LIGHT, 20)
             .fireModes(GunFireMode.SINGLE_FIRE)
             .startsEmpty()
+            .gunRenderer()
             .stats(3f, 0.8f, 1.5f, 1f, 350, 30, 0.2f, 0.1f, 0.1f, 5.0f)
             .register();
 
@@ -35,6 +36,7 @@ public class RoaItems {
             .ammo(AmmoType.MEDIUM, 20)
             .fireModes(GunFireMode.AUTOMATIC_FIRE, GunFireMode.SINGLE_FIRE)
             .startsEmpty()
+            .gunRenderer()
             .stats(2f, 0.85f, 2.2f, 2f, 400, 56, 0.6f, 0.15f, 0.1f, 3.5f)
             .register();
 

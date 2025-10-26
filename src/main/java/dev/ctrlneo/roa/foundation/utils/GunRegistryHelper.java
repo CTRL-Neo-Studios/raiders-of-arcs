@@ -2,15 +2,19 @@ package dev.ctrlneo.roa.foundation.utils;
 
 import dev.ctrlneo.roa.Roa;
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
+import dev.ctrlneo.roa.foundation.RoaItemRenderers;
+import dev.ctrlneo.roa.foundation.client.renderer.GunItemRenderer;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.AmmoType;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
 import dev.ctrlneo.roa.foundation.items.GunItem;
+import mod.azure.azurelib.common.render.item.AzItemRenderer;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Helper class for registering guns with a fluent builder pattern.
@@ -44,6 +48,7 @@ public class GunRegistryHelper {
         private GunFireMode defaultFireMode = GunFireMode.SINGLE_FIRE;
         private boolean startsLoaded = true;
         private int durability = 1000;
+        private Supplier<AzItemRenderer> renderer;
 
         private GunBuilder(String name) {
             this.name = name;
@@ -128,6 +133,23 @@ public class GunRegistryHelper {
         }
 
         /**
+         * Sets the gun's AzureLib item renderer.
+         * @param renderer The AzureLib Item Renderer for this gun item.
+         */
+        public GunBuilder renderer(Supplier<AzItemRenderer> renderer) {
+            this.renderer = renderer;
+            return this;
+        }
+
+        /**
+         * Sets the gun's Gun Item renderer using the default item name.
+         */
+        public GunBuilder gunRenderer() {
+            this.renderer = () -> new GunItemRenderer(this.name);
+            return this;
+        }
+
+        /**
          * Registers the gun with all configured components
          */
         public DeferredItem<GunItem> register() {
@@ -142,13 +164,17 @@ public class GunRegistryHelper {
                     List.copyOf(availableFireModes)
             );
 
-            return Roa.ITEMS.register(name, () -> new GunItem(
+            DeferredItem<GunItem> item = Roa.ITEMS.register(name, () -> new GunItem(
                     new Item.Properties()
                             .durability(durability),
                     statsComponent,
                     magazineComponent,
                     fireModesComponent
             ));
+
+            RoaItemRenderers.RENDERERS.add(new RoaItemRenderers.Entry(renderer, item));
+
+            return item;
         }
     }
 }

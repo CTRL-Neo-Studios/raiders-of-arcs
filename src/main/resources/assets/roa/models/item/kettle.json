@@ -1,29 +1,143 @@
 {
-	"format_version": "1.9.0",
-	"credit": "Made with Blockbench",
-	"parent": "minecraft:item",
-	"textures": {
-		"0": "roa:item/kettle",
-		"particle": "roa:item/kettle"
-	},
-	"elements": [
-		{
-			"from": [0, 0, 2],
-			"to": [2, 2, 12],
-			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, 10]},
-			"faces": {
-				"north": {"uv": [4, 4, 6, 6], "texture": "#0"},
-				"east": {"uv": [0, 0, 10, 2], "texture": "#0"},
-				"south": {"uv": [4, 6, 6, 8], "texture": "#0"},
-				"west": {"uv": [0, 2, 10, 4], "texture": "#0"},
-				"up": {"uv": [2, 14, 0, 4], "texture": "#0"},
-				"down": {"uv": [4, 4, 2, 14], "texture": "#0"}
-			}
-		}
-	],
-	"display": {
-		"firstperson_righthand": {
-			"translation": [0.75, 11, 0]
-		}
-	}
+  "credit": "Made with Blockbench",
+  "parent": "builtin/entity",
+  "texture_size": [
+    32,
+    32
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "translation": [
+        -1,
+        2.25,
+        -0.5
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "thirdperson_lefthand": {
+      "translation": [
+        -1,
+        2.25,
+        -0.5
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        3,
+        3,
+        6.75
+      ],
+      "translation": [
+        -4.5,
+        0.25,
+        0
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        3,
+        3,
+        6.75
+      ],
+      "translation": [
+        -4.5,
+        0.25,
+        0
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        -90
+      ],
+      "translation": [
+        0.75,
+        -0.5,
+        2
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "gui": {
+      "rotation": [
+        -119.7,
+        46.34,
+        141.1
+      ],
+      "translation": [
+        1.25,
+        1.25,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "head": {
+      "rotation": [
+        -90,
+        36,
+        90
+      ],
+      "translation": [
+        0,
+        -13.5,
+        4.25
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        -90,
+        0
+      ],
+      "translation": [
+        -2,
+        0.75,
+        0.5
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "on_shelf": {
+      "rotation": [
+        83.25,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        -2.5,
+        9.5
+      ],
+      "scale": [
+        2,
+        2,
+        2
+      ]
+    }
+  }
 }

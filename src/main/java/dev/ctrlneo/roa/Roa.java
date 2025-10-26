@@ -107,6 +107,8 @@ public class Roa {
         public static void onClientSetup(FMLClientSetupEvent event) {
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+
+            RoaItemRenderers.register();
         }
     }
 }
