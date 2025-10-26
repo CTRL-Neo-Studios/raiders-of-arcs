@@ -43,6 +43,7 @@ public class GunRegistryHelper {
         private Set<GunFireMode> availableFireModes = Set.of(GunFireMode.SINGLE_FIRE);
         private GunFireMode defaultFireMode = GunFireMode.SINGLE_FIRE;
         private boolean startsLoaded = true;
+        private int durability = 1000;
 
         private GunBuilder(String name) {
             this.name = name;
@@ -118,10 +119,18 @@ public class GunRegistryHelper {
         }
 
         /**
+         * Sets the gun's durability
+         * @param durability Maximum durability (how many shots before breaking)
+         */
+        public GunBuilder durability(int durability) {
+            this.durability = durability;
+            return this;
+        }
+
+        /**
          * Registers the gun with all configured components
          */
         public DeferredItem<GunItem> register() {
-            // Create the component instances
             GunStatsComponent statsComponent = stats;
             GunMagazineComponent magazineComponent = new GunMagazineComponent(
                     startsLoaded ? magazineCapacity : 0,
@@ -134,7 +143,8 @@ public class GunRegistryHelper {
             );
 
             return Roa.ITEMS.register(name, () -> new GunItem(
-                    new Item.Properties(),
+                    new Item.Properties()
+                            .durability(durability),
                     statsComponent,
                     magazineComponent,
                     fireModesComponent

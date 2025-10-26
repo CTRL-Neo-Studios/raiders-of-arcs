@@ -1,10 +1,12 @@
 package dev.ctrlneo.roa.foundation.items;
 
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
+import dev.ctrlneo.roa.foundation.RoaPackets;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.AttachmentSlot;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
 import dev.ctrlneo.roa.foundation.entity.BulletEntity;
+import dev.ctrlneo.roa.foundation.network.packets.ApplyRecoilPacket;
 import dev.ctrlneo.roa.foundation.utils.GunHelper;
 import dev.ctrlneo.roa.foundation.utils.GunUtils;
 import net.minecraft.ChatFormatting;
@@ -12,12 +14,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -33,7 +40,7 @@ public class GunItem extends Item {
                    GunStatsComponent stats,
                    GunMagazineComponent magazine,
                    GunFireModesComponent fireModes) {
-        super(properties.stacksTo(1).durability(0));
+        super(properties.stacksTo(1));
         this.defaultStats = stats;
         this.defaultMagazine = magazine;
         this.defaultFireModes = fireModes;
@@ -76,16 +83,20 @@ public class GunItem extends Item {
         GunStatsComponent stats = GunUtils.getEffectiveStats(stack);
 
         // Validation
-        if (magazine == null || modes == null || stats == null) {
+        if (magazine == null || modes == null || stats == null || state == null) {
+            return;
+        }
+
+        // Cancel reload if trying to fire
+        if (state.isReloading()) {
+            stack.set(RoaDataComponents.GUN_STATE.get(), state.cancelReload());
+            player.getCooldowns().removeCooldown(this);
+            player.playSound(SoundEvents.ITEM_BREAK, 0.5f, 1.2f);
             return;
         }
 
         if (!magazine.canFire()) {
             playEmptySound(level, player);
-            return;
-        }
-
-        if (state.isReloading()) {
             return;
         }
 
@@ -114,12 +125,36 @@ public class GunItem extends Item {
         } else {
             stack.set(RoaDataComponents.GUN_STATE.get(), new GunStateComponent(
                     false,
+                    0,
                     currentTime,
                     0
             ));
         }
 
+        stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
         playFireSound(level, player, stack);
+
+        // Apply recoil (CLIENT-SIDE via packet)
+        if (player instanceof ServerPlayer serverPlayer) {
+            applyRecoil(serverPlayer, stats);
+        }
+    }
+
+    private void applyRecoil(ServerPlayer player, GunStatsComponent stats) {
+        // Calculate recoil based on gun stats
+        float basePitchRecoil = stats.recoilVertical();
+        float baseYawRecoil = stats.recoilHorizontal();
+
+        // Add randomness for realistic feel
+        float pitchRecoil = basePitchRecoil * (0.8f + player.getRandom().nextFloat() * 0.4f);
+        float yawRecoil = baseYawRecoil * (player.getRandom().nextFloat() - 0.5f) * 2.0f;
+
+        // Reduce recoil when aiming (check if player is aiming on client)
+        // Note: You might want to sync ADS state to server if you want this
+        // For now, apply full recoil
+
+        // Send recoil packet to client
+        RoaPackets.sendToPlayer(player, new ApplyRecoilPacket(pitchRecoil, yawRecoil));
     }
 
     private void fireProjectile(Level level, Player player, ItemStack stack, GunStatsComponent stats) {
@@ -168,28 +203,35 @@ public class GunItem extends Item {
 
         GunAttachmentsComponent attachments = stack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
         GunMagazineComponent magazine = stack.get(RoaDataComponents.GUN_MAGAZINE.get());
+        GunStateComponent state = stack.get(RoaDataComponents.GUN_STATE.get());
 
-        if (magazine == null || !GunHelper.canReload(stack, player, attachments)) {
+        if (magazine == null || state == null) {
+            return;
+        }
+
+        // If already reloading, ignore
+        if (state.isReloading()) {
+            return;
+        }
+
+        if (!GunHelper.canReload(stack, player, attachments)) {
             player.playSound(SoundEvents.ITEM_BREAK, 0.5f, 1.0f);
             return;
         }
 
-        GunStateComponent state = stack.get(RoaDataComponents.GUN_STATE.get());
+        // Start reload - don't actually reload yet!
+        long currentTime = player.level().getGameTime();
+        stack.set(RoaDataComponents.GUN_STATE.get(), state.withReloading(true, currentTime));
 
-        stack.set(RoaDataComponents.GUN_STATE.get(), state.withReloading(true));
-        GunHelper.reload(stack, player, attachments);
-        stack.set(RoaDataComponents.GUN_STATE.get(), state.withReloading(false));
+        // Get reload duration for cooldown display
+        GunStatsComponent stats = GunUtils.getEffectiveStats(stack);
+        int reloadTicks = stats.getReloadTicks();
 
-        GunMagazineComponent updatedMag = stack.get(RoaDataComponents.GUN_MAGAZINE.get());
+        // Set item cooldown for visual feedback (the shield-like bar)
+        player.getCooldowns().addCooldown(this, reloadTicks);
 
-        if (player instanceof ServerPlayer serverPlayer && updatedMag != null) {
-            serverPlayer.displayClientMessage(
-                    Component.translatable("gui.roa.reloaded",
-                            updatedMag.currentAmmo(),
-                            updatedMag.getEffectiveCapacity(attachments)),
-                    true
-            );
-        }
+        // Play reload start sound
+        player.playSound(SoundEvents.PISTON_EXTEND, 0.8f, 1.0f);
     }
 
     public void cycleFireMode(ItemStack stack, Player player) {
@@ -226,6 +268,57 @@ public class GunItem extends Item {
         player.playSound(SoundEvents.WOODEN_BUTTON_CLICK_ON, 0.5f, 1.5f);
     }
 
+    @Override
+    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+
+        if (!(entity instanceof Player player)) {
+            return;
+        }
+
+        ensureComponents(stack);
+
+        GunStateComponent state = stack.get(RoaDataComponents.GUN_STATE.get());
+        if (state == null) {
+            return;
+        }
+
+        // Cancel reload if item was switched away
+        if (!isSelected && state.isReloading()) {
+            stack.set(RoaDataComponents.GUN_STATE.get(), state.cancelReload());
+            player.getCooldowns().removeCooldown(this);
+            if (!level.isClientSide) {
+                player.playSound(SoundEvents.ITEM_BREAK, 0.5f, 1.2f);
+            }
+            return;
+        }
+
+        // Check reload completion (server-side only)
+        if (isSelected && state.isReloading() && !level.isClientSide) {
+            GunStatsComponent stats = GunUtils.getEffectiveStats(stack);
+            long currentTime = level.getGameTime();
+
+            if (state.isReloadComplete(currentTime, stats.getReloadTicks())) {
+                // Complete reload
+                GunAttachmentsComponent attachments = stack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
+                GunHelper.reload(stack, player, attachments);
+                stack.set(RoaDataComponents.GUN_STATE.get(), state.completeReload());
+
+                player.playSound(SoundEvents.PISTON_CONTRACT, 0.8f, 1.0f);
+
+                GunMagazineComponent magazine = stack.get(RoaDataComponents.GUN_MAGAZINE.get());
+                if (player instanceof ServerPlayer serverPlayer && magazine != null) {
+                    serverPlayer.displayClientMessage(
+                            Component.translatable("gui.roa.reloaded",
+                                    magazine.currentAmmo(),
+                                    magazine.getEffectiveCapacity(attachments)),
+                            true
+                    );
+                }
+            }
+        }
+    }
+
     /**
      * Ensures all components exist using stored defaults
      */
@@ -258,13 +351,30 @@ public class GunItem extends Item {
         GunMagazineComponent magazine = stack.get(RoaDataComponents.GUN_MAGAZINE.get());
         GunFireModesComponent modes = stack.get(RoaDataComponents.GUN_FIRE_MODES.get());
 
+        // Durability info
+        if (stack.isDamageableItem()) {
+            int durability = stack.getMaxDamage() - stack.getDamageValue();
+            int maxDurability = stack.getMaxDamage();
+            float durabilityPercent = (float) durability / maxDurability * 100;
+
+            ChatFormatting durabilityColor = durabilityPercent > 50 ? ChatFormatting.GREEN :
+                    durabilityPercent > 25 ? ChatFormatting.YELLOW :
+                            ChatFormatting.RED;
+
+            tooltipComponents.add(Component.translatable(
+                    "item.durability",
+                    durability,
+                    maxDurability
+            ).withStyle(durabilityColor));
+        }
+
         // Magazine info
         int effectiveCapacity = magazine.getEffectiveCapacity(attachments);
         tooltipComponents.add(Component.translatable(
                 "tooltip.roa.ammo",
                 magazine.currentAmmo(),
                 effectiveCapacity
-        ).withStyle(magazine.currentAmmo() == 0 ? ChatFormatting.RED : ChatFormatting.WHITE));
+        ).withStyle(magazine.currentAmmo() == 0 ? ChatFormatting.RED : ChatFormatting.GRAY));
 
         if (effectiveCapacity > magazine.baseCapacity()) {
             int bonus = effectiveCapacity - magazine.baseCapacity();
@@ -280,7 +390,22 @@ public class GunItem extends Item {
                 modes.currentMode().getDisplayName()
         ).withStyle(ChatFormatting.GRAY));
 
+        // Show reload status
+        GunStateComponent state = stack.get(RoaDataComponents.GUN_STATE.get());
+        if (state != null && state.isReloading()) {
+            GunStatsComponent stats = GunUtils.getEffectiveStats(stack);
+            long currentTime = net.minecraft.client.Minecraft.getInstance().level != null ?
+                    net.minecraft.client.Minecraft.getInstance().level.getGameTime() : 0;
+            float progress = state.getReloadProgress(currentTime, stats.getReloadTicks());
+
+            tooltipComponents.add(Component.translatable(
+                    "tooltip.roa.reloading",
+                    String.format("%.0f%%", progress * 100)
+            ).withStyle(ChatFormatting.YELLOW));
+        }
+
         tooltipComponents.add(Component.empty());
+
 
         // Attachments
         if (attachments.hasAnyAttachments()) {
@@ -354,5 +479,50 @@ public class GunItem extends Item {
         GunAttachmentsComponent newAttachments = newStack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
 
         return !java.util.Objects.equals(oldAttachments, newAttachments);
+    }
+
+    @Override
+    public void onDestroyed(ItemEntity itemEntity, DamageSource damageSource) {
+        // Get attachments before the item is destroyed
+        ItemStack stack = itemEntity.getItem();
+        GunAttachmentsComponent attachments = stack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
+
+        if (attachments != null && attachments.hasAnyAttachments()) {
+            Level level = itemEntity.level();
+            Vec3 pos = itemEntity.position();
+
+            // Drop each attachment as a separate item entity
+            Map<AttachmentSlot, ItemStack> allAttachments = attachments.getAllAttachments();
+            for (ItemStack attachmentStack : allAttachments.values()) {
+                if (!attachmentStack.isEmpty()) {
+                    ItemEntity droppedAttachment = new ItemEntity(
+                            level,
+                            pos.x,
+                            pos.y,
+                            pos.z,
+                            attachmentStack.copy()
+                    );
+
+                    // Add some random velocity for scatter effect
+                    droppedAttachment.setDeltaMovement(
+                            (level.random.nextFloat() - 0.5) * 0.2,
+                            0.2,
+                            (level.random.nextFloat() - 0.5) * 0.2
+                    );
+
+                    level.addFreshEntity(droppedAttachment);
+                }
+            }
+
+            // Play sound
+            level.playSound(
+                    null,
+                    pos.x, pos.y, pos.z,
+                    SoundEvents.ITEM_BREAK,
+                    SoundSource.PLAYERS,
+                    1.0f,
+                    1.0f
+            );
+        }
     }
 }

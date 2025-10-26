@@ -7,6 +7,8 @@ import dev.ctrlneo.roa.foundation.items.GunItem;
 import dev.ctrlneo.roa.foundation.utils.GunRegistryHelper;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.flag.FeatureFlag;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -26,14 +28,14 @@ public class RoaItems {
             .ammo(AmmoType.LIGHT, 20)
             .fireModes(GunFireMode.SINGLE_FIRE)
             .startsEmpty()
-            .stats(2f, 0.8f, 1.0f, 0.5f, 600, 30, 0.2f, 0.1f, 0.1f, 5.0f)
+            .stats(2f, 0.8f, 1.5f, 1f, 350, 30, 0.2f, 0.1f, 0.1f, 5.0f)
             .register();
 
     public static final DeferredItem<GunItem> RATTLER = GunRegistryHelper.gun("rattler")
             .ammo(AmmoType.MEDIUM, 20)
             .fireModes(GunFireMode.AUTOMATIC_FIRE, GunFireMode.SINGLE_FIRE)
             .startsEmpty()
-            .stats(2f, 0.8f, 1.0f, 0.5f, 600, 56, 0.2f, 0.1f, 0.1f, 3.5f)
+            .stats(2f, 0.85f, 2.2f, 2f, 400, 56, 0.6f, 0.15f, 0.1f, 3.5f)
             .register();
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ROA_TAB =

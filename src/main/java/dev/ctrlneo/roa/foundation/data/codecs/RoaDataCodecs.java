@@ -98,11 +98,10 @@ public class RoaDataCodecs {
             };
 
 
-
-
     public static final Codec<GunStateComponent> GUN_STATE_COMPONENT_CODEC =
             RecordCodecBuilder.create(instance -> instance.group(
                     Codec.BOOL.fieldOf("is_reloading").forGetter(GunStateComponent::isReloading),
+                    Codec.LONG.fieldOf("reload_start_time").forGetter(GunStateComponent::reloadStartTime),
                     Codec.LONG.fieldOf("last_fire_time").forGetter(GunStateComponent::lastFireTime),
                     Codec.INT.fieldOf("burst_shots_fired").forGetter(GunStateComponent::burstShotsFired)
             ).apply(instance, GunStateComponent::new));
@@ -110,6 +109,7 @@ public class RoaDataCodecs {
     public static final StreamCodec<ByteBuf, GunStateComponent> STREAM_GUN_STATE_COMPONENT_CODEC =
             StreamCodec.composite(
                     ByteBufCodecs.BOOL, GunStateComponent::isReloading,
+                    ByteBufCodecs.VAR_LONG, GunStateComponent::reloadStartTime,
                     ByteBufCodecs.VAR_LONG, GunStateComponent::lastFireTime,
                     ByteBufCodecs.VAR_INT, GunStateComponent::burstShotsFired,
                     GunStateComponent::new

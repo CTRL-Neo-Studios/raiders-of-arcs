@@ -4,8 +4,7 @@ import dev.ctrlneo.roa.RoaConfig;
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.RoaKeybinds;
 import dev.ctrlneo.roa.foundation.RoaPackets;
-import dev.ctrlneo.roa.foundation.data.components.GunFireModesComponent;
-import dev.ctrlneo.roa.foundation.data.components.GunStatsComponent;
+import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import dev.ctrlneo.roa.foundation.network.packets.AimDownSightsPacket;
@@ -13,9 +12,12 @@ import dev.ctrlneo.roa.foundation.network.packets.CycleFireModePacket;
 import dev.ctrlneo.roa.foundation.network.packets.FireGunPacket;
 import dev.ctrlneo.roa.foundation.network.packets.OpenAttachmentsScreenPacket;
 import dev.ctrlneo.roa.foundation.network.packets.ReloadGunPacket;
+import dev.ctrlneo.roa.foundation.utils.GunHelper;
 import dev.ctrlneo.roa.foundation.utils.GunUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
@@ -40,20 +42,40 @@ public class ClientTickHandler {
         }
 
         ItemStack mainHandStack = player.getMainHandItem();
-        if (!(mainHandStack.getItem() instanceof GunItem)) {
+        ItemStack prevMainHandStack = getPreviousMainHandStack(player);
+
+        if (!(mainHandStack.getItem() instanceof GunItem gunItem)) {
             // Reset ADS state if not holding a gun
             AdsStateManager.reset();
+            RecoilManager.reset(); // Reset recoil too
+
+            // Cancel reload if switched away from gun
+            if (prevMainHandStack.getItem() instanceof GunItem) {
+                cancelReloadIfSwitched(prevMainHandStack, player);
+            }
+
             return;
         }
 
-        // Update ADS transition speed based on gun stats
+        // Check if we switched items while reloading
+        if (!ItemStack.isSameItem(mainHandStack, prevMainHandStack)) {
+            cancelReloadIfSwitched(prevMainHandStack, player);
+        }
+
+        // Update ADS transition speed
         GunStatsComponent stats = GunUtils.getEffectiveStats(mainHandStack);
         if (stats != null) {
             AdsStateManager.setTransitionSpeed(stats.adsSpeed());
         }
 
-        // Update ADS progress for smooth transitions
+        // Update ADS progress
         AdsStateManager.updateAdsProgress();
+
+        // Update recoil (CLIENT-SIDE)
+        RecoilManager.updateRecoil();
+
+        // Check reload completion
+        checkReloadCompletion(mainHandStack, player);
 
         // Handle ADS hold mode
         handleAdsHoldMode(mc, mainHandStack);
@@ -63,6 +85,60 @@ public class ClientTickHandler {
 
         // Handle keybinds
         handleKeybinds(player);
+
+        // Store current item for next tick
+        storePreviousMainHandStack(player, mainHandStack);
+    }
+
+    private static ItemStack previousMainHandStack = ItemStack.EMPTY;
+
+    private static ItemStack getPreviousMainHandStack(LocalPlayer player) {
+        return previousMainHandStack;
+    }
+
+    private static void storePreviousMainHandStack(LocalPlayer player, ItemStack stack) {
+        previousMainHandStack = stack.copy();
+    }
+
+    private static void cancelReloadIfSwitched(ItemStack gunStack, LocalPlayer player) {
+        GunStateComponent state = gunStack.get(RoaDataComponents.GUN_STATE.get());
+        if (state != null && state.isReloading()) {
+            // Cancel reload
+            gunStack.set(RoaDataComponents.GUN_STATE.get(), state.cancelReload());
+            player.playSound(SoundEvents.ITEM_BREAK, 0.5f, 1.2f);
+        }
+    }
+
+    private static void checkReloadCompletion(ItemStack gunStack, LocalPlayer player) {
+        GunStateComponent state = gunStack.get(RoaDataComponents.GUN_STATE.get());
+        if (state == null || !state.isReloading()) {
+            return;
+        }
+
+        GunStatsComponent stats = GunUtils.getEffectiveStats(gunStack);
+        long currentTime = player.level().getGameTime();
+
+        // Check if reload is complete
+        if (state.isReloadComplete(currentTime, stats.getReloadTicks())) {
+            // Complete the reload
+            GunAttachmentsComponent attachments = gunStack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
+            GunHelper.reload(gunStack, player, attachments);
+            gunStack.set(RoaDataComponents.GUN_STATE.get(), state.completeReload());
+
+            // Play reload complete sound
+            player.playSound(SoundEvents.PISTON_CONTRACT, 0.8f, 1.0f);
+
+            // Show message
+            GunMagazineComponent magazine = gunStack.get(RoaDataComponents.GUN_MAGAZINE.get());
+            if (magazine != null) {
+                player.displayClientMessage(
+                        Component.translatable("gui.roa.reloaded",
+                                magazine.currentAmmo(),
+                                magazine.getEffectiveCapacity(attachments)),
+                        true
+                );
+            }
+        }
     }
 
     private static void handleAdsHoldMode(Minecraft mc, ItemStack gunStack) {

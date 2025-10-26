@@ -45,6 +45,12 @@ public class RoaPackets {
                 OpenAttachmentsScreenPacket.STREAM_CODEC,
                 OpenAttachmentsScreenPacket::handle
         );
+
+        registrar.playToClient(
+                ApplyRecoilPacket.TYPE,
+                ApplyRecoilPacket.STREAM_CODEC,
+                ApplyRecoilPacket::handle
+        );
     }
 
     public static <T extends CustomPacketPayload> void sendToServer(T packet) {
