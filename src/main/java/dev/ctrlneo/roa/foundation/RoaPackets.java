@@ -46,6 +46,12 @@ public class RoaPackets {
                 OpenAttachmentsScreenPacket::handle
         );
 
+        registrar.playToServer(
+                UpdateGunAnimationPacket.TYPE,
+                UpdateGunAnimationPacket.STREAM_CODEC,
+                UpdateGunAnimationPacket::handle
+        );
+
         registrar.playToClient(
                 ApplyRecoilPacket.TYPE,
                 ApplyRecoilPacket.STREAM_CODEC,

@@ -29,7 +29,7 @@ public class RoaItems {
             .fireModes(GunFireMode.SINGLE_FIRE)
             .startsEmpty()
             .gunRenderer()
-            .stats(3f, 0.8f, 30, 20, 350, 30, 0.2f, 0.1f, 0.1f, 5.0f)
+            .stats(3f, 0.8f, 5f, 3f, 350, 30, 0.2f, 0.1f, 0.1f, 5.0f)
             .register();
 
     public static final DeferredItem<GunItem> RATTLER = GunRegistryHelper.gun("rattler")
@@ -37,7 +37,7 @@ public class RoaItems {
             .fireModes(GunFireMode.AUTOMATIC_FIRE, GunFireMode.SINGLE_FIRE)
             .startsEmpty()
             .gunRenderer()
-            .stats(2f, 0.85f, 2.2f, 2f, 400, 56, 0.6f, 0.15f, 0.1f, 3.5f)
+            .stats(2f, 0.85f, 6f, 2.5f, 400, 56, 0.6f, 0.15f, 0.1f, 3.5f)
             .register();
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ROA_TAB =

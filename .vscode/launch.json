@@ -6,19 +6,19 @@
       "request": "launch",
       "name": "Client",
       "presentation": {
-        "group": "Mod Development - Raiders of ARCs",
+        "group": "Mod Development - raiders-of-arcs",
         "order": 0
       },
-      "projectName": "Raiders of ARCs",
+      "projectName": "raiders-of-arcs",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\build\\moddev\\clientRunProgramArgs.txt"
+        "@/Users/administrator/Documents/Idea Projects/raiders-of-arcs/build/moddev/clientRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\build\\moddev\\clientRunVmArgs.txt",
-        "-Dfml.modFolders\u003droa%%D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\bin\\main"
+        "@/Users/administrator/Documents/Idea Projects/raiders-of-arcs/build/moddev/clientRunVmArgs.txt",
+        "-Dfml.modFolders\u003droa%%/Users/administrator/Documents/Idea Projects/raiders-of-arcs/bin/main"
       ],
-      "cwd": "${workspaceFolder}\\run",
+      "cwd": "${workspaceFolder}/run",
       "env": {},
       "console": "internalConsole",
       "shortenCommandLine": "none"
@@ -28,19 +28,19 @@
       "request": "launch",
       "name": "Data",
       "presentation": {
-        "group": "Mod Development - Raiders of ARCs",
+        "group": "Mod Development - raiders-of-arcs",
         "order": 1
       },
-      "projectName": "Raiders of ARCs",
+      "projectName": "raiders-of-arcs",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\build\\moddev\\dataRunProgramArgs.txt"
+        "@/Users/administrator/Documents/Idea Projects/raiders-of-arcs/build/moddev/dataRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\build\\moddev\\dataRunVmArgs.txt",
-        "-Dfml.modFolders\u003droa%%D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\bin\\main"
+        "@/Users/administrator/Documents/Idea Projects/raiders-of-arcs/build/moddev/dataRunVmArgs.txt",
+        "-Dfml.modFolders\u003droa%%/Users/administrator/Documents/Idea Projects/raiders-of-arcs/bin/main"
       ],
-      "cwd": "${workspaceFolder}\\run",
+      "cwd": "${workspaceFolder}/run",
       "env": {},
       "console": "internalConsole",
       "shortenCommandLine": "none"
@@ -50,19 +50,19 @@
       "request": "launch",
       "name": "GameTestServer",
       "presentation": {
-        "group": "Mod Development - Raiders of ARCs",
+        "group": "Mod Development - raiders-of-arcs",
         "order": 2
       },
-      "projectName": "Raiders of ARCs",
+      "projectName": "raiders-of-arcs",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\build\\moddev\\gameTestServerRunProgramArgs.txt"
+        "@/Users/administrator/Documents/Idea Projects/raiders-of-arcs/build/moddev/gameTestServerRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\build\\moddev\\gameTestServerRunVmArgs.txt",
-        "-Dfml.modFolders\u003droa%%D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\bin\\main"
+        "@/Users/administrator/Documents/Idea Projects/raiders-of-arcs/build/moddev/gameTestServerRunVmArgs.txt",
+        "-Dfml.modFolders\u003droa%%/Users/administrator/Documents/Idea Projects/raiders-of-arcs/bin/main"
       ],
-      "cwd": "${workspaceFolder}\\run",
+      "cwd": "${workspaceFolder}/run",
       "env": {},
       "console": "internalConsole",
       "shortenCommandLine": "none"
@@ -72,19 +72,19 @@
       "request": "launch",
       "name": "Server",
       "presentation": {
-        "group": "Mod Development - Raiders of ARCs",
+        "group": "Mod Development - raiders-of-arcs",
         "order": 3
       },
-      "projectName": "Raiders of ARCs",
+      "projectName": "raiders-of-arcs",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\build\\moddev\\serverRunProgramArgs.txt"
+        "@/Users/administrator/Documents/Idea Projects/raiders-of-arcs/build/moddev/serverRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\build\\moddev\\serverRunVmArgs.txt",
-        "-Dfml.modFolders\u003droa%%D:\\OD\\Windows Defaults\\Documents\\Idea Projects\\Raiders of ARCs\\bin\\main"
+        "@/Users/administrator/Documents/Idea Projects/raiders-of-arcs/build/moddev/serverRunVmArgs.txt",
+        "-Dfml.modFolders\u003droa%%/Users/administrator/Documents/Idea Projects/raiders-of-arcs/bin/main"
       ],
-      "cwd": "${workspaceFolder}\\run",
+      "cwd": "${workspaceFolder}/run",
       "env": {},
       "console": "internalConsole",
       "shortenCommandLine": "none"

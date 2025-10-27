@@ -2,9 +2,12 @@ package dev.ctrlneo.roa.foundation.client;
 
 import com.mojang.logging.LogUtils;
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
+import dev.ctrlneo.roa.foundation.RoaPackets;
 import dev.ctrlneo.roa.foundation.data.components.GunStateComponent;
 import dev.ctrlneo.roa.foundation.items.GunItem;
+import dev.ctrlneo.roa.foundation.network.packets.UpdateGunAnimationPacket;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
@@ -78,25 +81,33 @@ public class GunAnimationStateManager {
     }
 
     /**
-     * Dispatch the appropriate animation command for the target state
+     * Dispatch the appropriate animation command for the target state.
+     * Sends a packet to the server which will dispatch the animation command,
+     * ensuring proper AzureLib synchronization to all clients.
      */
     private static void dispatchAnimation(LocalPlayer player, ItemStack gunStack, GunItem gunItem,
             AnimationState targetState) {
         switch (targetState) {
             case IDLE:
                 if (DEBUG)
-                    LOGGER.info("[GunAnimator] → Dispatching IDLE animation");
-                gunItem.dispatcher.idle(player, gunStack);
+                    LOGGER.info("[GunAnimator] → Dispatching IDLE animation (via server)");
+                RoaPackets.sendToServer(new UpdateGunAnimationPacket(
+                        InteractionHand.MAIN_HAND,
+                        UpdateGunAnimationPacket.AnimationState.IDLE));
                 break;
             case AIM:
                 if (DEBUG)
-                    LOGGER.info("[GunAnimator] → Dispatching AIM animation");
-                gunItem.dispatcher.aim(player, gunStack);
+                    LOGGER.info("[GunAnimator] → Dispatching AIM animation (via server)");
+                RoaPackets.sendToServer(new UpdateGunAnimationPacket(
+                        InteractionHand.MAIN_HAND,
+                        UpdateGunAnimationPacket.AnimationState.AIM));
                 break;
             case SPRINT:
                 if (DEBUG)
-                    LOGGER.info("[GunAnimator] → Dispatching SPRINT animation");
-                gunItem.dispatcher.sprint(player, gunStack);
+                    LOGGER.info("[GunAnimator] → Dispatching SPRINT animation (via server)");
+                RoaPackets.sendToServer(new UpdateGunAnimationPacket(
+                        InteractionHand.MAIN_HAND,
+                        UpdateGunAnimationPacket.AnimationState.SPRINT));
                 break;
             case RELOADING:
                 if (DEBUG)
@@ -120,7 +131,9 @@ public class GunAnimationStateManager {
      */
     public static void transitionToIdle(LocalPlayer player, ItemStack gunStack, GunItem gunItem) {
         if (currentState != AnimationState.IDLE) {
-            gunItem.dispatcher.idle(player, gunStack);
+            RoaPackets.sendToServer(new UpdateGunAnimationPacket(
+                    InteractionHand.MAIN_HAND,
+                    UpdateGunAnimationPacket.AnimationState.IDLE));
             currentState = AnimationState.IDLE;
         }
     }

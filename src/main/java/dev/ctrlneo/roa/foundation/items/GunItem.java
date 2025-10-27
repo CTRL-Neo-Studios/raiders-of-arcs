@@ -166,7 +166,7 @@ public class GunItem extends Item {
 
         // Add randomness for realistic feel
         float pitchRecoil = basePitchRecoil * (0.8f + player.getRandom().nextFloat()) * 2.0f;
-        float yawRecoil = baseYawRecoil * (0.8f + player.getRandom().nextFloat()) * 2.0f * (player.getRandom().nextBoolean() ? -1 : 1);
+        float yawRecoil = baseYawRecoil * (player.getRandom().nextFloat() - 0.4f) * 0.5f * (player.getRandom().nextBoolean() ? -1 : 1);
 
         // Reduce recoil when aiming (check if player is aiming on client)
         // Note: You might want to sync ADS state to server if you want this
