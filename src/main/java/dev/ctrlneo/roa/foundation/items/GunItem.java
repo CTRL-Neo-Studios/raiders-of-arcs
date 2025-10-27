@@ -161,16 +161,21 @@ public class GunItem extends Item {
 
     private void applyRecoil(ServerPlayer player, GunStatsComponent stats) {
         // Calculate recoil based on gun stats
+        // The recoil values are now directly used without excessive multipliers
+        // This makes stat changes much more noticeable!
         float basePitchRecoil = stats.recoilVertical();
         float baseYawRecoil = stats.recoilHorizontal();
 
-        // Add randomness for realistic feel
-        float pitchRecoil = basePitchRecoil * (0.8f + player.getRandom().nextFloat()) * 2.0f;
-        float yawRecoil = baseYawRecoil * (player.getRandom().nextFloat() - 0.4f) * 0.5f * (player.getRandom().nextBoolean() ? -1 : 1);
+        // Add subtle randomness for realistic feel (±10%)
+        // Much less random variation so you can actually feel stat differences
+        float randomVariation = 0.9f + player.getRandom().nextFloat() * 0.2f; // 0.9 to 1.1
+        float pitchRecoil = basePitchRecoil * randomVariation;
+        
+        // Horizontal recoil: random direction but consistent magnitude
+        float yawRecoil = baseYawRecoil * randomVariation * (player.getRandom().nextBoolean() ? -1 : 1);
 
-        // Reduce recoil when aiming (check if player is aiming on client)
-        // Note: You might want to sync ADS state to server if you want this
-        // For now, apply full recoil
+        // Note: ADS recoil reduction is now handled client-side in RecoilManager
+        // This allows for smoother, FOV-aware recoil application
 
         // Send recoil packet to client
         RoaPackets.sendToPlayer(player, new ApplyRecoilPacket(pitchRecoil, yawRecoil));

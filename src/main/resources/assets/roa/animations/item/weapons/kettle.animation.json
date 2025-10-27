@@ -176,6 +176,17 @@
 			"animation_length": 0.0667,
 			"override_previous_animation": true,
 			"bones": {
+				"trigger": {
+					"position": {
+						"0.0": {
+							"vector": [0, 0, 0.5]
+						},
+						"0.0667": {
+							"vector": [0, 0, 0],
+							"easing": "easeOutSine"
+						}
+					}
+				},
 				"weaponbody": {
 					"rotation": {
 						"0.0": {

@@ -20,7 +20,7 @@ public class GunItemAnimator extends AzItemAnimator {
     public void registerControllers(AzAnimationControllerContainer<ItemStack> animationControllerContainer) {
         animationControllerContainer.add(
                 AzAnimationController.builder(this, "base_controller")
-                        .setTransitionLength(1)
+                        .setTransitionLength(2)
                         .build());
     }
 
