@@ -2,8 +2,8 @@
   "credit": "Made with Blockbench",
   "parent": "builtin/entity",
   "texture_size": [
-    32,
-    32
+    128,
+    128
   ],
   "display": {
     "thirdperson_righthand": {
@@ -73,9 +73,9 @@
     },
     "gui": {
       "rotation": [
-        -119.7,
-        46.34,
-        141.1
+        -119.69999999999982,
+        46.340000000000146,
+        141.0999999999999
       ],
       "translation": [
         1.25,
@@ -139,5 +139,8 @@
         2
       ]
     }
+  },
+  "textures": {
+    "particle": "kettle"
   }
 }

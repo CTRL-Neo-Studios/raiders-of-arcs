@@ -6,12 +6,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 
 public class GunItemDispatcher {
-    private static final AzCommand IDLE_COMMAND = AzCommand.create("base_controller", "idle", AzPlayBehaviors.PLAY_ONCE);
-    private static final AzCommand AIM_COMMAND = AzCommand.create("base_controller", "aim", AzPlayBehaviors.PLAY_ONCE);
-    private static final AzCommand SPRINT_COMMAND = AzCommand.create("base_controller", "sprinting", AzPlayBehaviors.PLAY_ONCE);
-    private static final AzCommand FIRE_COMMAND = AzCommand.create("base_controller", "fire", AzPlayBehaviors.PLAY_ONCE);
-    private static final AzCommand AIM_FIRE_COMMAND = AzCommand.create("base_controller", "aim_fire", AzPlayBehaviors.PLAY_ONCE);
-    private static final AzCommand RELOAD_COMMAND = AzCommand.create("base_controller", "reload", AzPlayBehaviors.PLAY_ONCE);
+    private static final AzCommand IDLE_COMMAND = AzCommand.create("base_controller", "weapon.idle", AzPlayBehaviors.LOOP);
+    private static final AzCommand AIM_COMMAND = AzCommand.create("base_controller", "weapon.aim", AzPlayBehaviors.LOOP);
+    private static final AzCommand SPRINT_COMMAND = AzCommand.create("base_controller", "weapon.sprinting", AzPlayBehaviors.LOOP);
+    private static final AzCommand FIRE_COMMAND = AzCommand.create("base_controller", "weapon.fire", AzPlayBehaviors.PLAY_ONCE);
+    private static final AzCommand AIM_FIRE_COMMAND = AzCommand.create("base_controller", "weapon.aim_fire", AzPlayBehaviors.PLAY_ONCE);
+    private static final AzCommand RELOAD_COMMAND = AzCommand.create("base_controller", "weapon.reload", AzPlayBehaviors.PLAY_ONCE);
 
     public void fire(Entity entity, ItemStack itemStack) {
         FIRE_COMMAND.sendForItem(entity, itemStack);
@@ -24,13 +24,6 @@ public class GunItemDispatcher {
 
     public void aim(Entity entity, ItemStack itemStack) {
         AIM_COMMAND.sendForItem(entity, itemStack);
-        AIM_COMMAND.sendForItem(entity, itemStack);
-        AIM_COMMAND.sendForItem(entity, itemStack);
-        AIM_COMMAND.sendForItem(entity, itemStack);
-        AIM_COMMAND.sendForItem(entity, itemStack);
-        AIM_COMMAND.sendForItem(entity, itemStack);
-        AIM_COMMAND.sendForItem(entity, itemStack);
-        AIM_COMMAND.sendForItem(entity, itemStack);
     }
 
     public void aimFire(Entity entity, ItemStack itemStack) {
@@ -39,13 +32,6 @@ public class GunItemDispatcher {
     }
 
     public void sprint(Entity entity, ItemStack itemStack) {
-        SPRINT_COMMAND.sendForItem(entity, itemStack);
-        SPRINT_COMMAND.sendForItem(entity, itemStack);
-        SPRINT_COMMAND.sendForItem(entity, itemStack);
-        SPRINT_COMMAND.sendForItem(entity, itemStack);
-        SPRINT_COMMAND.sendForItem(entity, itemStack);
-        SPRINT_COMMAND.sendForItem(entity, itemStack);
-        SPRINT_COMMAND.sendForItem(entity, itemStack);
         SPRINT_COMMAND.sendForItem(entity, itemStack);
     }
 

@@ -1,7 +1,7 @@
 {
 	"format_version": "1.8.0",
 	"animations": {
-		"idle": {
+		"weapon.idle": {
 			"loop": true,
 			"animation_length": 5,
 			"bones": {
@@ -35,7 +35,7 @@
 				}
 			}
 		},
-		"sprinting": {
+		"weapon.sprinting": {
 			"loop": true,
 			"animation_length": 0.55,
 			"bones": {
@@ -103,7 +103,7 @@
 				}
 			}
 		},
-		"reload": {
+		"weapon.reload": {
 			"loop": true,
 			"animation_length": 0.55,
 			"bones": {
@@ -171,7 +171,7 @@
 				}
 			}
 		},
-		"fire": {
+		"weapon.fire": {
 			"loop": true,
 			"animation_length": 0.0667,
 			"override_previous_animation": true,
@@ -206,7 +206,7 @@
 				}
 			}
 		},
-		"aim": {
+		"weapon.aim": {
 			"loop": true,
 			"animation_length": 5,
 			"bones": {
@@ -240,7 +240,7 @@
 				}
 			}
 		},
-		"aim_fire": {
+		"weapon.aim_fire": {
 			"loop": true,
 			"animation_length": 0.0667,
 			"override_previous_animation": true,
