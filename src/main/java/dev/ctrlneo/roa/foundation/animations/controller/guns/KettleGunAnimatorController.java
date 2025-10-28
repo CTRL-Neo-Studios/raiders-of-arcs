@@ -13,8 +13,8 @@ public class KettleGunAnimatorController extends GunAnimatorController {
     @Override
     protected AnimationDurations getAnimationDurations() {
         return new AnimationDurations(
-            0.1f,
-            0.1f,
+            0.07f,
+            0.07f,
             5f
         );
     }

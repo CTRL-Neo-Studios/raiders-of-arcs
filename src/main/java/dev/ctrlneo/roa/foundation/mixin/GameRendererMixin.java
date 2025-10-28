@@ -4,9 +4,10 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.WrapWithCondition;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import dev.ctrlneo.roa.RoaConfig;
 import dev.ctrlneo.roa.foundation.client.AdsStateManager;
+import dev.ctrlneo.roa.foundation.data.components.GunStatsComponent;
 import dev.ctrlneo.roa.foundation.items.GunItem;
+import dev.ctrlneo.roa.foundation.utils.GunUtils;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -48,9 +49,12 @@ public class GameRendererMixin {
             return originalFov;
         }
 
+        // Get gun's FOV zoom multiplier from stats (per-gun customizable!)
+        GunStatsComponent stats = GunUtils.getEffectiveStats(mainHandStack);
+        double fovZoomMultiplier = stats != null ? stats.fovZoomMultiplier() : 1.0;
+        
         // Calculate target FOV
-        double adsFovMultiplier = RoaConfig.CLIENT.adsFovMultiplier.get();
-        double targetFov = originalFov * adsFovMultiplier;
+        double targetFov = originalFov * fovZoomMultiplier;
 
         // Apply smoothstep for even smoother feel
         float smoothProgress = roa$smoothstep(adsProgress);

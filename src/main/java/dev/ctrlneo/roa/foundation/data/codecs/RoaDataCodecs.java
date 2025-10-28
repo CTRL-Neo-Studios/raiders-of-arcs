@@ -61,7 +61,8 @@ public class RoaDataCodecs {
                     Codec.FLOAT.fieldOf("armor_penetration").forGetter(GunStatsComponent::armorPenetration),
                     Codec.FLOAT.fieldOf("ads_speed").forGetter(GunStatsComponent::adsSpeed),
                     Codec.FLOAT.fieldOf("unholster_speed").forGetter(GunStatsComponent::unholsterSpeed),
-                    Codec.FLOAT.fieldOf("reload_speed").forGetter(GunStatsComponent::reloadSpeed)
+                    Codec.FLOAT.fieldOf("reload_speed").forGetter(GunStatsComponent::reloadSpeed),
+                    Codec.FLOAT.fieldOf("fov_zoom_multiplier").forGetter(GunStatsComponent::fovZoomMultiplier)
             ).apply(instance, GunStatsComponent::new));
 
     public static final StreamCodec<ByteBuf, GunStatsComponent> STREAM_GUN_STATS_COMPONENT_CODEC =
@@ -78,7 +79,8 @@ public class RoaDataCodecs {
                             buffer.readFloat(),  // armorPenetration
                             buffer.readFloat(),  // adsSpeed
                             buffer.readFloat(),  // unholsterSpeed
-                            buffer.readFloat()   // reloadSpeed
+                            buffer.readFloat(),  // reloadSpeed
+                            buffer.readFloat()   // fov_zoom_multiplier
                     );
                 }
 
@@ -94,6 +96,7 @@ public class RoaDataCodecs {
                     buffer.writeFloat(value.adsSpeed());
                     buffer.writeFloat(value.unholsterSpeed());
                     buffer.writeFloat(value.reloadSpeed());
+                    buffer.writeFloat(value.fovZoomMultiplier());
                 }
             };
 

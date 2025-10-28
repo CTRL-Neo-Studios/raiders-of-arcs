@@ -3,6 +3,7 @@ package dev.ctrlneo.roa.foundation.items;
 import com.mojang.logging.LogUtils;
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.RoaPackets;
+import dev.ctrlneo.roa.foundation.animations.controller.AnimatorController;
 import dev.ctrlneo.roa.foundation.animations.dispatchers.GunItemDispatcher;
 import dev.ctrlneo.roa.foundation.client.AdsStateManager;
 import dev.ctrlneo.roa.foundation.data.components.*;
@@ -41,19 +42,17 @@ public class GunItem extends Item {
     private final GunStatsComponent defaultStats;
     private final GunMagazineComponent defaultMagazine;
     private final GunFireModesComponent defaultFireModes;
-    public final GunItemDispatcher dispatcher;
-    public final dev.ctrlneo.roa.foundation.animations.controller.AnimatorController animatorController;
+    public final AnimatorController animatorController;
 
     public GunItem(Properties properties,
             GunStatsComponent stats,
             GunMagazineComponent magazine,
             GunFireModesComponent fireModes,
-            dev.ctrlneo.roa.foundation.animations.controller.AnimatorController animatorController) {
+            AnimatorController animatorController) {
         super(properties.stacksTo(1));
         this.defaultStats = stats;
         this.defaultMagazine = magazine;
         this.defaultFireModes = fireModes;
-        this.dispatcher = new GunItemDispatcher();
         this.animatorController = animatorController;
     }
 
@@ -103,7 +102,7 @@ public class GunItem extends Item {
             stack.set(RoaDataComponents.GUN_STATE.get(), state.cancelReload());
             player.getCooldowns().removeCooldown(this);
             player.playSound(SoundEvents.ITEM_BREAK, 0.5f, 1.2f);
-            dispatcher.idle(player, stack);
+            // Animation is now handled by AnimatorController on client-side
             return;
         }
 
@@ -129,16 +128,9 @@ public class GunItem extends Item {
         // Fire the gun!
         fireProjectile(level, player, stack, stats);
 
-        // Fire animations
-        if (AdsStateManager.isPlayerAiming()) {
-            if (DEBUG)
-                LOGGER.info("[GunAnimator] ONE-SHOT: AIM_FIRE animation triggered");
-            dispatcher.aimFire(player, stack);
-        } else {
-            if (DEBUG)
-                LOGGER.info("[GunAnimator] ONE-SHOT: FIRE animation triggered");
-            dispatcher.fire(player, stack);
-        }
+        // Fire animations are now handled by AnimatorController on client-side
+        // The client calls GunAnimationStateManager.notifyFire() which sends the proper animation
+        // via UpdateGunAnimationPacket with the correct AzPlayBehavior from the AnimatorController
 
         // Update components
         stack.set(RoaDataComponents.GUN_MAGAZINE.get(), magazine.consume(1));
@@ -258,9 +250,9 @@ public class GunItem extends Item {
         // Play reload start sound
         player.playSound(SoundEvents.PISTON_EXTEND, 0.8f, 1.0f);
 
-        if (DEBUG)
-            LOGGER.info("[GunAnimator] ONE-SHOT: RELOAD animation triggered");
-        dispatcher.reload(player, stack);
+        // Reload animation is now handled by AnimatorController on client-side
+        // The client calls GunAnimationStateManager.notifyReload() which sends the proper animation
+        // via UpdateGunAnimationPacket with the correct AzPlayBehavior from the AnimatorController
     }
 
     public void cycleFireMode(ItemStack stack, Player player) {

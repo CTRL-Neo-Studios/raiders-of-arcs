@@ -72,12 +72,23 @@ public class GunRegistryHelper {
         public GunBuilder stats(float damage, float accuracy, float recoilVertical,
                                 float recoilHorizontal, int fireRate, float range,
                                 float penetration, float adsSpeed, float unholsterSpeed,
-                                float reloadSpeed) {
+                                float reloadSpeed, float fovZoomMultiplier) {
             this.stats = new GunStatsComponent(
                     damage, accuracy, recoilVertical, recoilHorizontal,
-                    fireRate, range, penetration, adsSpeed, unholsterSpeed, reloadSpeed
+                    fireRate, range, penetration, adsSpeed, unholsterSpeed, reloadSpeed, fovZoomMultiplier
             );
             return this;
+        }
+        
+        /**
+         * Convenience method for stats without FOV zoom (defaults to 1.0 = no zoom)
+         */
+        public GunBuilder stats(float damage, float accuracy, float recoilVertical,
+                                float recoilHorizontal, int fireRate, float range,
+                                float penetration, float adsSpeed, float unholsterSpeed,
+                                float reloadSpeed) {
+            return stats(damage, accuracy, recoilVertical, recoilHorizontal, fireRate, range, 
+                        penetration, adsSpeed, unholsterSpeed, reloadSpeed, 1.0f);
         }
 
         /**

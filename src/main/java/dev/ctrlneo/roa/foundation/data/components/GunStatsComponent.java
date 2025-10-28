@@ -10,7 +10,8 @@ public record GunStatsComponent(
         float armorPenetration,
         float adsSpeed,         // Time in seconds to aim down sights
         float unholsterSpeed,   // Time in seconds to ready the weapon
-        float reloadSpeed       // Time in seconds to reload
+        float reloadSpeed,      // Time in seconds to reload
+        float fovZoomMultiplier // FOV zoom when ADS (1.0 = no zoom, 0.5 = 2x zoom)
 ) {
     public static final GunStatsComponent DEFAULT = new GunStatsComponent(
             10.0f,   // damage
@@ -22,7 +23,8 @@ public record GunStatsComponent(
             0.0f,    // armor penetration
             0.3f,    // ADS speed
             0.5f,    // unholster speed
-            2.0f     // reload speed
+            2.0f,    // reload speed
+            1.0f     // FOV zoom multiplier (no zoom by default)
     );
 
     public long getTicksBetweenShots() {
@@ -55,7 +57,8 @@ public record GunStatsComponent(
                 Math.min(1.0f, armorPenetration + modifiers.armorPenetrationBonus()),
                 adsSpeed * modifiers.adsSpeedMultiplier(),
                 unholsterSpeed,
-                reloadSpeed * modifiers.reloadSpeedMultiplier()
+                reloadSpeed * modifiers.reloadSpeedMultiplier(),
+                fovZoomMultiplier // Keep FOV zoom unchanged by attachments (for now)
         );
     }
 }

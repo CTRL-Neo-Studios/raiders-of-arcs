@@ -1,12 +1,11 @@
 package dev.ctrlneo.roa.foundation.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import dev.ctrlneo.roa.RoaConfig;
+import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.RoaPackets;
 import dev.ctrlneo.roa.foundation.client.AdsStateManager;
 import dev.ctrlneo.roa.foundation.client.GunAnimationStateManager;
 import dev.ctrlneo.roa.foundation.items.GunItem;
-import dev.ctrlneo.roa.foundation.network.packets.AimDownSightsPacket;
 import dev.ctrlneo.roa.foundation.network.packets.FireGunPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -35,13 +34,19 @@ public abstract class MinecraftMixin {
     @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
     private void onLeftClick(CallbackInfoReturnable<Boolean> cir) {
         if (player != null && player.getMainHandItem().getItem() instanceof GunItem gunItem) {
+            // Check if gun has ammo before playing animation
+            var magazine = player.getMainHandItem().get(RoaDataComponents.GUN_MAGAZINE.get());
+            boolean hasAmmo = magazine != null && magazine.currentAmmo() > 0;
+            
             // Send single fire packet
             // The server will check fire mode and handle accordingly
             RoaPackets.sendToServer(new FireGunPacket(InteractionHand.MAIN_HAND, true));
             
-            // Notify animation system that fire animation should play
-            boolean isAiming = AdsStateManager.isPlayerAiming();
-            GunAnimationStateManager.notifyFire(player, player.getMainHandItem(), gunItem, isAiming);
+            // Only play fire animation if gun has ammo
+            if (hasAmmo) {
+                boolean isAiming = AdsStateManager.isPlayerAiming();
+                GunAnimationStateManager.notifyFire(player, player.getMainHandItem(), gunItem, isAiming);
+            }
 
             // Cancel vanilla attack
             cir.setReturnValue(false);
@@ -49,26 +54,14 @@ public abstract class MinecraftMixin {
     }
 
     /**
-     * Handle right-click (ADS) when holding a gun
+     * Cancel vanilla right-click behavior when holding a gun
+     * Actual ADS handling is done via custom keybind in ClientTickHandler
      */
     @Inject(method = "startUseItem", at = @At("HEAD"), cancellable = true)
     private void onRightClick(CallbackInfo ci) {
         if (player != null && player.getMainHandItem().getItem() instanceof GunItem) {
-            boolean toggleAds = RoaConfig.CLIENT.toggleAds.get();
-            boolean newAiming;
-
-            if (toggleAds) {
-                // Toggle mode - flip the state
-                newAiming = !AdsStateManager.isPlayerAiming();
-            } else {
-                // Hold mode - always set to true on press
-                // Release is handled in ClientTickHandler
-                newAiming = true;
-            }
-
-            AdsStateManager.setAiming(newAiming);
-            RoaPackets.sendToServer(new AimDownSightsPacket(InteractionHand.MAIN_HAND, newAiming));
-
+            // Cancel vanilla use item behavior for guns
+            // ADS is handled by the custom AIM_DOWN_SIGHTS keybind
             ci.cancel();
         }
     }

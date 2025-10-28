@@ -157,15 +157,23 @@ public class ClientTickHandler {
             return;
         }
 
-        // Check if right mouse button is released
-        if (!mc.options.keyUse.isDown() && AdsStateManager.isPlayerAiming()) {
+        // Check if ADS keybind is released (allows players to rebind it!)
+        if (!RoaKeybinds.AIM_DOWN_SIGHTS.isDown() && AdsStateManager.isPlayerAiming()) {
+            AdsStateManager.setAiming(false);
+            RoaPackets.sendToServer(new AimDownSightsPacket(InteractionHand.MAIN_HAND, false));
+        }
+        
+        // Also cancel ADS if player starts reloading
+        GunStateComponent gunState = gunStack.get(RoaDataComponents.GUN_STATE.get());
+        if (gunState != null && gunState.isReloading() && AdsStateManager.isPlayerAiming()) {
             AdsStateManager.setAiming(false);
             RoaPackets.sendToServer(new AimDownSightsPacket(InteractionHand.MAIN_HAND, false));
         }
     }
 
     private static void handleAutomaticFire(Minecraft mc, LocalPlayer player, ItemStack gunStack) {
-        // Check if left mouse button is being held
+        // Check if attack key is being held (use vanilla attack key for shooting)
+        // This allows compatibility with vanilla controls
         if (!mc.options.keyAttack.isDown()) {
             return;
         }
@@ -181,20 +189,53 @@ public class ClientTickHandler {
             return;
         }
 
+        // Check if gun has ammo before playing animation
+        GunMagazineComponent magazine = gunStack.get(RoaDataComponents.GUN_MAGAZINE.get());
+        boolean hasAmmo = magazine != null && magazine.currentAmmo() > 0;
+
         // Send fire packet continuously
         RoaPackets.sendToServer(new FireGunPacket(InteractionHand.MAIN_HAND, true));
         
-        // Notify animation system that fire animation should play
-        boolean isAiming = AdsStateManager.isPlayerAiming();
-        if (gunStack.getItem() instanceof GunItem gunItem) {
-            GunAnimationStateManager.notifyFire(player, gunStack, gunItem, isAiming);
+        // Only play fire animation if gun has ammo
+        if (hasAmmo) {
+            boolean isAiming = AdsStateManager.isPlayerAiming();
+            if (gunStack.getItem() instanceof GunItem gunItem) {
+                GunAnimationStateManager.notifyFire(player, gunStack, gunItem, isAiming);
+            }
         }
     }
 
     private static void handleKeybinds(LocalPlayer player) {
+        ItemStack mainHandStack = player.getMainHandItem();
+        
+        // ADS (Right Mouse Button by default, but rebindable!)
+        while (RoaKeybinds.AIM_DOWN_SIGHTS.consumeClick()) {
+            if (mainHandStack.getItem() instanceof GunItem) {
+                // Check if currently reloading - can't aim while reloading
+                GunStateComponent gunState = mainHandStack.get(RoaDataComponents.GUN_STATE.get());
+                if (gunState != null && gunState.isReloading()) {
+                    continue;
+                }
+                
+                boolean toggleAds = RoaConfig.CLIENT.toggleAds.get();
+                boolean newAiming;
+
+                if (toggleAds) {
+                    // Toggle mode - flip the state
+                    newAiming = !AdsStateManager.isPlayerAiming();
+                } else {
+                    // Hold mode - always set to true on press
+                    // Release is handled in handleAdsHoldMode
+                    newAiming = true;
+                }
+
+                AdsStateManager.setAiming(newAiming);
+                RoaPackets.sendToServer(new AimDownSightsPacket(InteractionHand.MAIN_HAND, newAiming));
+            }
+        }
+        
         // Reload (R)
         while (RoaKeybinds.RELOAD.consumeClick()) {
-            ItemStack mainHandStack = player.getMainHandItem();
             RoaPackets.sendToServer(new ReloadGunPacket(InteractionHand.MAIN_HAND));
             
             // Notify animation system that reload animation should play

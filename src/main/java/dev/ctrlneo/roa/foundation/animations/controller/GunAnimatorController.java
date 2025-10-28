@@ -3,6 +3,7 @@ package dev.ctrlneo.roa.foundation.animations.controller;
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.client.AdsStateManager;
 import dev.ctrlneo.roa.foundation.data.components.GunStateComponent;
+import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -32,13 +33,13 @@ public class GunAnimatorController extends AnimatorController {
     public GunAnimatorController() {
         AnimationDurations durations = getAnimationDurations();
         
-        // Initialize states with durations (in seconds)
-        this.IDLE = new AnimationState("IDLE", "weapon.idle", false, 0);
-        this.AIM = new AnimationState("AIM", "weapon.aim", false, 0);
-        this.SPRINT = new AnimationState("SPRINT", "weapon.sprinting", false, 0);
-        this.FIRE = new AnimationState("FIRE", "weapon.fire", true, durations.fireSeconds);
-        this.AIM_FIRE = new AnimationState("AIM_FIRE", "weapon.aim_fire", true, durations.aimFireSeconds);
-        this.RELOAD = new AnimationState("RELOAD", "weapon.reload", true, durations.reloadSeconds);
+        // Initialize states with durations (in seconds) and AzureLib play behaviors
+        this.IDLE = new AnimationState("IDLE", "weapon.idle", AzPlayBehaviors.LOOP, 0);
+        this.AIM = new AnimationState("AIM", "weapon.aim", AzPlayBehaviors.LOOP, 0);
+        this.SPRINT = new AnimationState("SPRINT", "weapon.sprinting", AzPlayBehaviors.LOOP, 0);
+        this.FIRE = new AnimationState("FIRE", "weapon.fire", AzPlayBehaviors.HOLD_ON_LAST_FRAME, durations.fireSeconds);
+        this.AIM_FIRE = new AnimationState("AIM_FIRE", "weapon.aim_fire", AzPlayBehaviors.HOLD_ON_LAST_FRAME, durations.aimFireSeconds);
+        this.RELOAD = new AnimationState("RELOAD", "weapon.reload", AzPlayBehaviors.HOLD_ON_LAST_FRAME, durations.reloadSeconds);
         
         // Define transitions (order matters - first match wins!)
         this.transitions = new AnimationTransition[] {
@@ -114,7 +115,8 @@ public class GunAnimatorController extends AnimatorController {
     }
     
     protected boolean isSprinting(LocalPlayer player, ItemStack itemStack) {
-        return player.isSprinting();
+        // Only sprint animation if sprinting AND on ground
+        return player.isSprinting() && player.onGround();
     }
     
     protected boolean isReloading(LocalPlayer player, ItemStack itemStack) {

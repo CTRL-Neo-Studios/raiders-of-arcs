@@ -9,9 +9,9 @@ public class GunItemDispatcher {
     private static final AzCommand IDLE_COMMAND = AzCommand.create("base_controller", "weapon.idle", AzPlayBehaviors.LOOP);
     private static final AzCommand AIM_COMMAND = AzCommand.create("base_controller", "weapon.aim", AzPlayBehaviors.LOOP);
     private static final AzCommand SPRINT_COMMAND = AzCommand.create("base_controller", "weapon.sprinting", AzPlayBehaviors.LOOP);
-    private static final AzCommand FIRE_COMMAND = AzCommand.create("base_controller", "weapon.fire", AzPlayBehaviors.PLAY_ONCE);
-    private static final AzCommand AIM_FIRE_COMMAND = AzCommand.create("base_controller", "weapon.aim_fire", AzPlayBehaviors.PLAY_ONCE);
-    private static final AzCommand RELOAD_COMMAND = AzCommand.create("base_controller", "weapon.reload", AzPlayBehaviors.PLAY_ONCE);
+    private static final AzCommand FIRE_COMMAND = AzCommand.create("base_controller", "weapon.fire", AzPlayBehaviors.HOLD_ON_LAST_FRAME);
+    private static final AzCommand AIM_FIRE_COMMAND = AzCommand.create("base_controller", "weapon.aim_fire", AzPlayBehaviors.HOLD_ON_LAST_FRAME);
+    private static final AzCommand RELOAD_COMMAND = AzCommand.create("base_controller", "weapon.reload", AzPlayBehaviors.HOLD_ON_LAST_FRAME);
 
     public void fire(Entity entity, ItemStack itemStack) {
         FIRE_COMMAND.sendForItem(entity, itemStack);

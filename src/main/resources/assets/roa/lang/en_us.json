@@ -29,6 +29,12 @@
   "tooltip.roa.reloading": "Reloading... %s",
 
 
+  "key.roa.aim_down_sights": "Aim Down Sights",
+  "key.roa.reload": "Reload",
+  "key.roa.fire_mode_cycle": "Cycle Fire Mode",
+  "key.roa.open_attachments": "Open Attachments",
+
+
   "gui.roa.fire_mode_changed": "Fire Mode Changed",
   "gui.roa.reloading": "Reloading...",
   "gui.roa.reloaded": "Reloaded!",

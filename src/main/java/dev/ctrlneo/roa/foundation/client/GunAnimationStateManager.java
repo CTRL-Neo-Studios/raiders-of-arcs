@@ -6,6 +6,8 @@ import dev.ctrlneo.roa.foundation.animations.controller.AnimatorController;
 import dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import dev.ctrlneo.roa.foundation.network.packets.UpdateGunAnimationPacket;
+import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehavior;
+import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -105,23 +107,28 @@ public class GunAnimationStateManager {
 
     /**
      * Send animation command to server for synchronization.
+     * Now sends the actual animation name and play behavior from the AnimatorController!
      */
     private static void sendAnimationCommand(AnimatorController.AnimationCommand command) {
-        // Map animation name to UpdateGunAnimationPacket.AnimationState
-        UpdateGunAnimationPacket.AnimationState packetState = switch (command.getAnimationName()) {
-            case "weapon.idle" -> UpdateGunAnimationPacket.AnimationState.IDLE;
-            case "weapon.aim" -> UpdateGunAnimationPacket.AnimationState.AIM;
-            case "weapon.sprinting" -> UpdateGunAnimationPacket.AnimationState.SPRINT;
-            case "weapon.fire" -> UpdateGunAnimationPacket.AnimationState.FIRE;
-            case "weapon.aim_fire" -> UpdateGunAnimationPacket.AnimationState.AIM_FIRE;
-            case "weapon.reload" -> UpdateGunAnimationPacket.AnimationState.RELOAD;
-            default -> UpdateGunAnimationPacket.AnimationState.IDLE;
-        };
-
+        // Get play behavior ordinal for network transmission
+        int playBehaviorOrdinal = getPlayBehaviorOrdinal(command.getPlayBehavior());
+        
         RoaPackets.sendToServer(new UpdateGunAnimationPacket(
                 InteractionHand.MAIN_HAND,
-                packetState
+                command.getAnimationName(),
+                playBehaviorOrdinal
         ));
+    }
+    
+    /**
+     * Get ordinal for AzPlayBehavior for network transmission.
+     * This matches the mapping in UpdateGunAnimationPacket.
+     */
+    private static int getPlayBehaviorOrdinal(AzPlayBehavior behavior) {
+        if (behavior == AzPlayBehaviors.LOOP) return 0;
+        if (behavior == AzPlayBehaviors.PLAY_ONCE) return 1;
+        if (behavior == AzPlayBehaviors.HOLD_ON_LAST_FRAME) return 2;
+        return 0; // Default to LOOP
     }
 
     /**

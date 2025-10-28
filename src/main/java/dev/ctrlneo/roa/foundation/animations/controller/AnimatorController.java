@@ -1,5 +1,7 @@
 package dev.ctrlneo.roa.foundation.animations.controller;
 
+import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehavior;
+import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -31,8 +33,8 @@ public abstract class AnimatorController {
         
         long currentTick = player.level().getGameTime();
         
-        // Check if current state has finished (for PLAY_ONCE animations)
-        if (currentState.isPlayOnce() && hasStateFinished(currentTick)) {
+        // Check if current state has finished (for PLAY_ONCE and HOLD_ON_LAST_FRAME animations)
+        if (currentState.shouldAutoReturn() && hasStateFinished(currentTick)) {
             // Transition to next state
             AnimationState nextState = getStateAfterPlayOnce(player, itemStack);
             if (nextState != currentState) {
@@ -120,20 +122,20 @@ public abstract class AnimatorController {
         
         private final String name;
         private final String animationName;
-        private final boolean isPlayOnce;
+        private final AzPlayBehavior playBehavior;
         private final int durationTicks;
         
         /**
          * Create an animation state.
          * @param name Internal name for this state
          * @param animationName Animation name in AzureLib animation file
-         * @param isPlayOnce Whether this is a one-shot animation
+         * @param playBehavior AzureLib play behavior (LOOP, PLAY_ONCE, HOLD_ON_LAST_FRAME, etc.)
          * @param durationSeconds Duration in seconds (will be converted to ticks with proper rounding)
          */
-        public AnimationState(String name, String animationName, boolean isPlayOnce, float durationSeconds) {
+        public AnimationState(String name, String animationName, AzPlayBehavior playBehavior, float durationSeconds) {
             this.name = name;
             this.animationName = animationName;
-            this.isPlayOnce = isPlayOnce;
+            this.playBehavior = playBehavior;
             // Use Math.round for proper rounding instead of truncation
             // Examples: 0.07s → 1.4 ticks → 1 tick
             //           1.14s → 22.8 ticks → 23 ticks
@@ -148,16 +150,24 @@ public abstract class AnimatorController {
             return animationName;
         }
         
-        public boolean isPlayOnce() {
-            return isPlayOnce;
+        public AzPlayBehavior getPlayBehavior() {
+            return playBehavior;
         }
         
         public int getDurationTicks() {
             return durationTicks;
         }
         
+        /**
+         * Should this animation automatically return to a loop state after finishing?
+         * True for PLAY_ONCE and HOLD_ON_LAST_FRAME.
+         */
+        public boolean shouldAutoReturn() {
+            return playBehavior == AzPlayBehaviors.PLAY_ONCE || playBehavior == AzPlayBehaviors.HOLD_ON_LAST_FRAME;
+        }
+        
         public AnimationCommand getAnimationCommand() {
-            return new AnimationCommand(animationName, isPlayOnce, durationTicks);
+            return new AnimationCommand(animationName, playBehavior, durationTicks);
         }
     }
     
@@ -193,12 +203,12 @@ public abstract class AnimatorController {
      */
     public static class AnimationCommand {
         private final String animationName;
-        private final boolean isPlayOnce;
+        private final AzPlayBehavior playBehavior;
         private final int durationTicks;
         
-        public AnimationCommand(String animationName, boolean isPlayOnce, int durationTicks) {
+        public AnimationCommand(String animationName, AzPlayBehavior playBehavior, int durationTicks) {
             this.animationName = animationName;
-            this.isPlayOnce = isPlayOnce;
+            this.playBehavior = playBehavior;
             this.durationTicks = durationTicks;
         }
         
@@ -206,8 +216,8 @@ public abstract class AnimatorController {
             return animationName;
         }
         
-        public boolean isPlayOnce() {
-            return isPlayOnce;
+        public AzPlayBehavior getPlayBehavior() {
+            return playBehavior;
         }
         
         public int getDurationTicks() {
