@@ -20,6 +20,7 @@ public class GunItemRenderer extends AzItemRenderer {
                 Reference.of("geo/item/weapons/%s.geo.json", name), Reference.of("textures/item/weapons/%s.png", name))
                 .setAnimatorProvider(() -> new GunItemAnimator(name))
                 .useNewOffset(true)
+//                .setShouldAnimateInContext(ItemDisplayContext::firstPerson)
                 .build()
         );
         GEO = Reference.of("geo/item/weapons/%s.geo.json", name);

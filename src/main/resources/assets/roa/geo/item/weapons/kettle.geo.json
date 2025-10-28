@@ -12,7 +12,12 @@
 			},
 			"bones": [
 				{
+					"name": "transform",
+					"pivot": [0, 0, 0]
+				},
+				{
 					"name": "weaponbody",
+					"parent": "transform",
 					"pivot": [0, 6, 0],
 					"cubes": [
 						{
@@ -831,6 +836,22 @@
 								"down": {"uv": [57, 11.5], "uv_size": [1.5, -1.5]}
 							}
 						}
+					]
+				},
+				{
+					"name": "rightArm",
+					"parent": "weaponbody",
+					"pivot": [-5.5, 6, 6.5],
+					"cubes": [
+						{"origin": [-7.5, -4, 4.5], "size": [3, 16, 3], "uv": [-3, -1]}
+					]
+				},
+				{
+					"name": "leftArm",
+					"parent": "weaponbody",
+					"pivot": [5.5, 6, 6.5],
+					"cubes": [
+						{"origin": [4.5, -4, 4.5], "size": [3, 16, 3], "uv": [-2, -1]}
 					]
 				},
 				{
