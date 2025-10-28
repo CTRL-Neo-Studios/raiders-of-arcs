@@ -48,6 +48,7 @@ public class ClientTickHandler {
             // Reset ADS state if not holding a gun
             AdsStateManager.reset();
             RecoilManager.reset(); // Reset recoil too
+            GunAnimationStateManager.reset(); // Reset animation state too!
 
             // Cancel reload if switched away from gun
             if (prevMainHandStack.getItem() instanceof GunItem) {
@@ -182,12 +183,20 @@ public class ClientTickHandler {
 
         // Send fire packet continuously
         RoaPackets.sendToServer(new FireGunPacket(InteractionHand.MAIN_HAND, true));
+        
+        // Notify animation system that a PLAY_ONCE fire animation will play
+        // Fire animations typically take ~10 ticks (500ms)
+        GunAnimationStateManager.notifyPlayOnceAnimation(player, 10);
     }
 
     private static void handleKeybinds(LocalPlayer player) {
         // Reload (R)
         while (RoaKeybinds.RELOAD.consumeClick()) {
             RoaPackets.sendToServer(new ReloadGunPacket(InteractionHand.MAIN_HAND));
+            
+            // Notify animation system that a PLAY_ONCE reload animation will play
+            // Reload animations typically take ~80-100 ticks (4-5 seconds)
+            GunAnimationStateManager.notifyPlayOnceAnimation(player, 100);
         }
 
         // Fire Mode Cycle (B)

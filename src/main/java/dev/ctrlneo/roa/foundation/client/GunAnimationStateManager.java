@@ -29,6 +29,10 @@ public class GunAnimationStateManager {
     }
 
     private static AnimationState currentState = AnimationState.IDLE;
+    
+    // Track when PLAY_ONCE animations are playing so we can return to loop animations
+    private static long playOnceAnimationEndTick = 0;
+    private static boolean needsLoopAnimationReturn = false;
 
     /**
      * Update the animation state based on player and gun state.
@@ -37,6 +41,21 @@ public class GunAnimationStateManager {
     public static void updateAnimationState(LocalPlayer player, ItemStack gunStack, GunItem gunItem) {
         if (gunStack.isEmpty() || !(gunStack.getItem() instanceof GunItem)) {
             reset();
+            return;
+        }
+
+        long currentTick = player.level().getGameTime();
+
+        // Check if we need to return to loop animation after PLAY_ONCE finished
+        if (needsLoopAnimationReturn && currentTick >= playOnceAnimationEndTick) {
+            if (DEBUG) {
+                LOGGER.info("[GunAnimator] PLAY_ONCE animation finished, returning to loop animation");
+            }
+            needsLoopAnimationReturn = false;
+            // Force re-dispatch current loop animation
+            AnimationState targetState = determineTargetState(player, gunStack);
+            dispatchAnimation(player, gunStack, gunItem, targetState);
+            currentState = targetState;
             return;
         }
 
@@ -139,10 +158,28 @@ public class GunAnimationStateManager {
     }
 
     /**
+     * Notify that a PLAY_ONCE animation has started.
+     * After it finishes, the system will return to the appropriate loop animation.
+     * 
+     * @param durationTicks Duration of the PLAY_ONCE animation in ticks
+     */
+    public static void notifyPlayOnceAnimation(LocalPlayer player, int durationTicks) {
+        long currentTick = player.level().getGameTime();
+        playOnceAnimationEndTick = currentTick + durationTicks;
+        needsLoopAnimationReturn = true;
+        
+        if (DEBUG) {
+            LOGGER.info("[GunAnimator] PLAY_ONCE animation started, will return to loop after {} ticks", durationTicks);
+        }
+    }
+
+    /**
      * Reset the animation state (called when no longer holding a gun)
      */
     public static void reset() {
         currentState = AnimationState.IDLE;
+        needsLoopAnimationReturn = false;
+        playOnceAnimationEndTick = 0;
     }
 
     /**

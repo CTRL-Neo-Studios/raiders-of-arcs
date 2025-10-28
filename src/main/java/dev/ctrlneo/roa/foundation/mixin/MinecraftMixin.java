@@ -4,13 +4,13 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import dev.ctrlneo.roa.RoaConfig;
 import dev.ctrlneo.roa.foundation.RoaPackets;
 import dev.ctrlneo.roa.foundation.client.AdsStateManager;
+import dev.ctrlneo.roa.foundation.client.GunAnimationStateManager;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import dev.ctrlneo.roa.foundation.network.packets.AimDownSightsPacket;
 import dev.ctrlneo.roa.foundation.network.packets.FireGunPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,6 +38,10 @@ public abstract class MinecraftMixin {
             // Send single fire packet
             // The server will check fire mode and handle accordingly
             RoaPackets.sendToServer(new FireGunPacket(InteractionHand.MAIN_HAND, true));
+            
+            // Notify animation system that a PLAY_ONCE fire animation will play
+            // Fire animations typically take ~10 ticks (500ms)
+            GunAnimationStateManager.notifyPlayOnceAnimation(player, 10);
 
             // Cancel vanilla attack
             cir.setReturnValue(false);
