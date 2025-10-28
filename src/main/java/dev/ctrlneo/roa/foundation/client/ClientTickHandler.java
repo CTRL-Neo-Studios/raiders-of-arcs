@@ -184,19 +184,23 @@ public class ClientTickHandler {
         // Send fire packet continuously
         RoaPackets.sendToServer(new FireGunPacket(InteractionHand.MAIN_HAND, true));
         
-        // Notify animation system that a PLAY_ONCE fire animation will play
-        // Fire animations typically take ~10 ticks (500ms)
-        GunAnimationStateManager.notifyPlayOnceAnimation(player, 10);
+        // Notify animation system that fire animation should play
+        boolean isAiming = AdsStateManager.isPlayerAiming();
+        if (gunStack.getItem() instanceof GunItem gunItem) {
+            GunAnimationStateManager.notifyFire(player, gunStack, gunItem, isAiming);
+        }
     }
 
     private static void handleKeybinds(LocalPlayer player) {
         // Reload (R)
         while (RoaKeybinds.RELOAD.consumeClick()) {
+            ItemStack mainHandStack = player.getMainHandItem();
             RoaPackets.sendToServer(new ReloadGunPacket(InteractionHand.MAIN_HAND));
             
-            // Notify animation system that a PLAY_ONCE reload animation will play
-            // Reload animations typically take ~80-100 ticks (4-5 seconds)
-            GunAnimationStateManager.notifyPlayOnceAnimation(player, 100);
+            // Notify animation system that reload animation should play
+            if (mainHandStack.getItem() instanceof GunItem gunItem) {
+                GunAnimationStateManager.notifyReload(player, mainHandStack, gunItem);
+            }
         }
 
         // Fire Mode Cycle (B)

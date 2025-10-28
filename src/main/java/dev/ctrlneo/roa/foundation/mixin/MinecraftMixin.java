@@ -34,14 +34,14 @@ public abstract class MinecraftMixin {
      */
     @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
     private void onLeftClick(CallbackInfoReturnable<Boolean> cir) {
-        if (player != null && player.getMainHandItem().getItem() instanceof GunItem) {
+        if (player != null && player.getMainHandItem().getItem() instanceof GunItem gunItem) {
             // Send single fire packet
             // The server will check fire mode and handle accordingly
             RoaPackets.sendToServer(new FireGunPacket(InteractionHand.MAIN_HAND, true));
             
-            // Notify animation system that a PLAY_ONCE fire animation will play
-            // Fire animations typically take ~10 ticks (500ms)
-            GunAnimationStateManager.notifyPlayOnceAnimation(player, 10);
+            // Notify animation system that fire animation should play
+            boolean isAiming = AdsStateManager.isPlayerAiming();
+            GunAnimationStateManager.notifyFire(player, player.getMainHandItem(), gunItem, isAiming);
 
             // Cancel vanilla attack
             cir.setReturnValue(false);

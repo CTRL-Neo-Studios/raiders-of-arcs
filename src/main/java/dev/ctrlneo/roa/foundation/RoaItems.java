@@ -1,18 +1,16 @@
 package dev.ctrlneo.roa.foundation;
 
 import dev.ctrlneo.roa.Roa;
+import dev.ctrlneo.roa.foundation.animations.controller.guns.KettleGunAnimatorController;
+import dev.ctrlneo.roa.foundation.animations.controller.guns.RattlerGunAnimatorController;
 import dev.ctrlneo.roa.foundation.data.structures.AmmoType;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import dev.ctrlneo.roa.foundation.utils.GunRegistryHelper;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.flag.FeatureFlag;
-import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 
@@ -30,6 +28,7 @@ public class RoaItems {
             .startsEmpty()
             .gunRenderer()
             .stats(3f, 2f, 1.8f, 0.5f, 350, 30, 0.2f, 0.1f, 0.1f, 5.0f)
+            .animatorController(new KettleGunAnimatorController())
             .register();
 
     public static final DeferredItem<GunItem> RATTLER = GunRegistryHelper.gun("rattler")
@@ -38,6 +37,7 @@ public class RoaItems {
             .startsEmpty()
             .gunRenderer()
             .stats(2f, 1.6f, 2f, 0.9f, 400, 56, 0.6f, 0.15f, 0.1f, 3.5f)
+            .animatorController(new RattlerGunAnimatorController())
             .register();
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ROA_TAB =

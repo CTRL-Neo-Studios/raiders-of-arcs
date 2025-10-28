@@ -1,8 +1,9 @@
 package dev.ctrlneo.roa.foundation.utils;
 
 import dev.ctrlneo.roa.Roa;
-import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.RoaItemRenderers;
+import dev.ctrlneo.roa.foundation.animations.controller.AnimatorController;
+import dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController;
 import dev.ctrlneo.roa.foundation.client.renderer.GunItemRenderer;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.AmmoType;
@@ -49,6 +50,7 @@ public class GunRegistryHelper {
         private boolean startsLoaded = true;
         private int durability = 1000;
         private Supplier<AzItemRenderer> renderer;
+        private AnimatorController animatorController = new GunAnimatorController();
 
         private GunBuilder(String name) {
             this.name = name;
@@ -150,6 +152,16 @@ public class GunRegistryHelper {
         }
 
         /**
+         * Sets a custom animator controller for this gun.
+         * Use this to customize animation durations and add custom states.
+         * @param controller The animator controller instance
+         */
+        public GunBuilder animatorController(AnimatorController controller) {
+            this.animatorController = controller;
+            return this;
+        }
+
+        /**
          * Registers the gun with all configured components
          */
         public DeferredItem<GunItem> register() {
@@ -169,7 +181,8 @@ public class GunRegistryHelper {
                             .durability(durability),
                     statsComponent,
                     magazineComponent,
-                    fireModesComponent
+                    fireModesComponent,
+                    animatorController
             ));
 
             RoaItemRenderers.RENDERERS.add(new RoaItemRenderers.Entry(renderer, item));

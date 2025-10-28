@@ -1,0 +1,20 @@
+package dev.ctrlneo.roa.foundation.animations.controller.guns;
+
+import dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController;
+
+/**
+ * Animator controller for the Rattler gun (automatic rifle).
+ * Fast fire rate with quick animations.
+ */
+public class RattlerGunAnimatorController extends GunAnimatorController {
+    
+    @Override
+    protected AnimationDurations getAnimationDurations() {
+        return new AnimationDurations(
+            0.1f,  // fire: 0.4 seconds - fast fire animation for automatic
+            0.1f,  // aimFire: 0.4 seconds
+            3.5f   // reload: 3.5 seconds
+        );
+    }
+}
+

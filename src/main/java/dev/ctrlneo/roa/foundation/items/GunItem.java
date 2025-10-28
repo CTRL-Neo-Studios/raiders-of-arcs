@@ -42,16 +42,19 @@ public class GunItem extends Item {
     private final GunMagazineComponent defaultMagazine;
     private final GunFireModesComponent defaultFireModes;
     public final GunItemDispatcher dispatcher;
+    public final dev.ctrlneo.roa.foundation.animations.controller.AnimatorController animatorController;
 
     public GunItem(Properties properties,
             GunStatsComponent stats,
             GunMagazineComponent magazine,
-            GunFireModesComponent fireModes) {
+            GunFireModesComponent fireModes,
+            dev.ctrlneo.roa.foundation.animations.controller.AnimatorController animatorController) {
         super(properties.stacksTo(1));
         this.defaultStats = stats;
         this.defaultMagazine = magazine;
         this.defaultFireModes = fireModes;
         this.dispatcher = new GunItemDispatcher();
+        this.animatorController = animatorController;
     }
 
     @Override

@@ -21,7 +21,10 @@ public record UpdateGunAnimationPacket(InteractionHand hand, AnimationState stat
     public enum AnimationState {
         IDLE,
         AIM,
-        SPRINT
+        SPRINT,
+        FIRE,
+        AIM_FIRE,
+        RELOAD
     }
 
     public static final CustomPacketPayload.Type<UpdateGunAnimationPacket> TYPE =
@@ -55,6 +58,15 @@ public record UpdateGunAnimationPacket(InteractionHand hand, AnimationState stat
                             break;
                         case SPRINT:
                             gunItem.dispatcher.sprint(serverPlayer, stack);
+                            break;
+                        case FIRE:
+                            gunItem.dispatcher.fire(serverPlayer, stack);
+                            break;
+                        case AIM_FIRE:
+                            gunItem.dispatcher.aimFire(serverPlayer, stack);
+                            break;
+                        case RELOAD:
+                            gunItem.dispatcher.reload(serverPlayer, stack);
                             break;
                     }
                 }
