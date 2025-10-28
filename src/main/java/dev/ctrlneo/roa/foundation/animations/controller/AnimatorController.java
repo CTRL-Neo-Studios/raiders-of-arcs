@@ -1,7 +1,8 @@
 package dev.ctrlneo.roa.foundation.animations.controller;
 
-import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehavior;
-import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
+import dev.ctrlneo.roa.foundation.animations.controller.core.AnimationCommand;
+import dev.ctrlneo.roa.foundation.animations.controller.core.AnimationState;
+import dev.ctrlneo.roa.foundation.animations.controller.core.AnimationTransition;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -44,8 +45,8 @@ public abstract class AnimatorController {
         
         // Evaluate transitions
         for (AnimationTransition transition : getTransitions()) {
-            if (transition.from == currentState && transition.evaluateCondition(player, itemStack)) {
-                return transitionTo(transition.to, currentTick);
+            if (transition.from() == currentState && transition.evaluateCondition(player, itemStack)) {
+                return transitionTo(transition.to(), currentTick);
             }
         }
         
@@ -113,116 +114,6 @@ public abstract class AnimatorController {
      * Override this to customize behavior after one-shot animations.
      */
     protected abstract AnimationState getStateAfterPlayOnce(LocalPlayer player, ItemStack itemStack);
-    
-    /**
-     * Represents an animation state in the state machine.
-     */
-    public static class AnimationState {
-        private static final int TICKS_PER_SECOND = 20;
-        
-        private final String name;
-        private final String animationName;
-        private final AzPlayBehavior playBehavior;
-        private final int durationTicks;
-        
-        /**
-         * Create an animation state.
-         * @param name Internal name for this state
-         * @param animationName Animation name in AzureLib animation file
-         * @param playBehavior AzureLib play behavior (LOOP, PLAY_ONCE, HOLD_ON_LAST_FRAME, etc.)
-         * @param durationSeconds Duration in seconds (will be converted to ticks with proper rounding)
-         */
-        public AnimationState(String name, String animationName, AzPlayBehavior playBehavior, float durationSeconds) {
-            this.name = name;
-            this.animationName = animationName;
-            this.playBehavior = playBehavior;
-            // Use Math.round for proper rounding instead of truncation
-            // Examples: 0.07s → 1.4 ticks → 1 tick
-            //           1.14s → 22.8 ticks → 23 ticks
-            this.durationTicks = Math.round(durationSeconds * TICKS_PER_SECOND);
-        }
-        
-        public String getName() {
-            return name;
-        }
-        
-        public String getAnimationName() {
-            return animationName;
-        }
-        
-        public AzPlayBehavior getPlayBehavior() {
-            return playBehavior;
-        }
-        
-        public int getDurationTicks() {
-            return durationTicks;
-        }
-        
-        /**
-         * Should this animation automatically return to a loop state after finishing?
-         * True for PLAY_ONCE and HOLD_ON_LAST_FRAME.
-         */
-        public boolean shouldAutoReturn() {
-            return playBehavior == AzPlayBehaviors.PLAY_ONCE || playBehavior == AzPlayBehaviors.HOLD_ON_LAST_FRAME;
-        }
-        
-        public AnimationCommand getAnimationCommand() {
-            return new AnimationCommand(animationName, playBehavior, durationTicks);
-        }
-    }
-    
-    /**
-     * Represents a transition between two states with a condition.
-     */
-    public static class AnimationTransition {
-        private final AnimationState from;
-        private final AnimationState to;
-        private final TransitionCondition condition;
-        
-        public AnimationTransition(AnimationState from, AnimationState to, TransitionCondition condition) {
-            this.from = from;
-            this.to = to;
-            this.condition = condition;
-        }
-        
-        public boolean evaluateCondition(LocalPlayer player, ItemStack itemStack) {
-            return condition.evaluate(player, itemStack);
-        }
-    }
-    
-    /**
-     * Functional interface for transition conditions.
-     */
-    @FunctionalInterface
-    public interface TransitionCondition {
-        boolean evaluate(LocalPlayer player, ItemStack itemStack);
-    }
-    
-    /**
-     * Animation command to be sent to the server/dispatcher.
-     */
-    public static class AnimationCommand {
-        private final String animationName;
-        private final AzPlayBehavior playBehavior;
-        private final int durationTicks;
-        
-        public AnimationCommand(String animationName, AzPlayBehavior playBehavior, int durationTicks) {
-            this.animationName = animationName;
-            this.playBehavior = playBehavior;
-            this.durationTicks = durationTicks;
-        }
-        
-        public String getAnimationName() {
-            return animationName;
-        }
-        
-        public AzPlayBehavior getPlayBehavior() {
-            return playBehavior;
-        }
-        
-        public int getDurationTicks() {
-            return durationTicks;
-        }
-    }
+
 }
 

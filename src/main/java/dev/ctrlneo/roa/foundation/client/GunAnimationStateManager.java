@@ -4,6 +4,8 @@ import com.mojang.logging.LogUtils;
 import dev.ctrlneo.roa.foundation.RoaPackets;
 import dev.ctrlneo.roa.foundation.animations.controller.AnimatorController;
 import dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController;
+import dev.ctrlneo.roa.foundation.animations.controller.core.AnimationCommand;
+import dev.ctrlneo.roa.foundation.animations.controller.core.AnimationState;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import dev.ctrlneo.roa.foundation.network.packets.UpdateGunAnimationPacket;
 import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehavior;
@@ -44,14 +46,14 @@ public class GunAnimationStateManager {
         );
 
         // Update the controller's state machine
-        AnimatorController.AnimationCommand command = controller.update(player, gunStack);
+        AnimationCommand command = controller.update(player, gunStack);
 
         // If state changed, send animation command to server
         if (command != null) {
             if (DEBUG) {
                 LOGGER.info("[GunAnimator] State changed to: {} (duration: {} ticks)", 
-                        command.getAnimationName(), 
-                        command.getDurationTicks());
+                        command.animationName(),
+                        command.durationTicks());
             }
             sendAnimationCommand(command);
         }
@@ -59,49 +61,49 @@ public class GunAnimationStateManager {
 
     /**
      * Notify that the player fired the gun.
-     * This triggers the appropriate fire animation.
+     * NO LONGER SENDS PACKET - animation is dispatched server-side for efficiency!
      */
     public static void notifyFire(LocalPlayer player, ItemStack gunStack, GunItem gunItem, boolean isAiming) {
+        // Fire animations are now dispatched directly from GunItem.tryFire() on the server
+        // This eliminates redundant packet sending (server already knows gun fired via FireGunPacket)
+        // We just update the local controller state for tracking
         AnimatorController controller = controllerInstances.computeIfAbsent(
                 gunItem,
                 item -> item.animatorController
         );
 
         if (controller instanceof GunAnimatorController gunController) {
-            AnimatorController.AnimationState fireState = gunController.getFireState(isAiming);
-            AnimatorController.AnimationCommand command = controller.forceState(fireState, player);
+            AnimationState fireState = gunController.getFireState(isAiming);
+            controller.forceState(fireState, player);
             
             if (DEBUG) {
-                LOGGER.info("[GunAnimator] FIRE animation: {} (duration: {} ticks)",
-                        command.getAnimationName(),
-                        command.getDurationTicks());
+                LOGGER.info("[GunAnimator] FIRE animation: {} (server will dispatch)",
+                        fireState.getAnimationName());
             }
-            
-            sendAnimationCommand(command);
         }
     }
 
     /**
      * Notify that the player started reloading.
-     * This triggers the reload animation.
+     * NO LONGER SENDS PACKET - animation is dispatched server-side for efficiency!
      */
     public static void notifyReload(LocalPlayer player, ItemStack gunStack, GunItem gunItem) {
+        // Reload animations are now dispatched directly from GunItem.reload() on the server
+        // This eliminates redundant packet sending (server already knows reload started via ReloadGunPacket)
+        // We just update the local controller state for tracking
         AnimatorController controller = controllerInstances.computeIfAbsent(
                 gunItem,
                 item -> item.animatorController
         );
 
         if (controller instanceof GunAnimatorController gunController) {
-            AnimatorController.AnimationState reloadState = gunController.getReloadState();
-            AnimatorController.AnimationCommand command = controller.forceState(reloadState, player);
+            AnimationState reloadState = gunController.getReloadState();
+            controller.forceState(reloadState, player);
             
             if (DEBUG) {
-                LOGGER.info("[GunAnimator] RELOAD animation: {} (duration: {} ticks)",
-                        command.getAnimationName(),
-                        command.getDurationTicks());
+                LOGGER.info("[GunAnimator] RELOAD animation: {} (server will dispatch)",
+                        reloadState.getAnimationName());
             }
-            
-            sendAnimationCommand(command);
         }
     }
 
@@ -109,13 +111,13 @@ public class GunAnimationStateManager {
      * Send animation command to server for synchronization.
      * Now sends the actual animation name and play behavior from the AnimatorController!
      */
-    private static void sendAnimationCommand(AnimatorController.AnimationCommand command) {
+    private static void sendAnimationCommand(AnimationCommand command) {
         // Get play behavior ordinal for network transmission
-        int playBehaviorOrdinal = getPlayBehaviorOrdinal(command.getPlayBehavior());
+        int playBehaviorOrdinal = getPlayBehaviorOrdinal(command.playBehavior());
         
         RoaPackets.sendToServer(new UpdateGunAnimationPacket(
                 InteractionHand.MAIN_HAND,
-                command.getAnimationName(),
+                command.animationName(),
                 playBehaviorOrdinal
         ));
     }

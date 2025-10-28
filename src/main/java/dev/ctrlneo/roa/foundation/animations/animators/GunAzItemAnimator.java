@@ -8,10 +8,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public class GunItemAnimator extends AzItemAnimator {
+public class GunAzItemAnimator extends AzItemAnimator {
     private final ResourceLocation ANIMATIONS;
 
-    public GunItemAnimator(String name) {
+    public GunAzItemAnimator(String name) {
         super();
         ANIMATIONS = Reference.of("animations/item/weapons/%s.animation.json", name);
     }
@@ -20,7 +20,7 @@ public class GunItemAnimator extends AzItemAnimator {
     public void registerControllers(AzAnimationControllerContainer<ItemStack> animationControllerContainer) {
         animationControllerContainer.add(
                 AzAnimationController.builder(this, "base_controller")
-                        .setTransitionLength(1)
+                        .setTransitionLength(0)
                         .build());
     }
 

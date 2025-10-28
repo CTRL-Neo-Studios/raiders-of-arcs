@@ -27,7 +27,7 @@ public class RoaItems {
             .fireModes(GunFireMode.SINGLE_FIRE)
             .startsEmpty()
             .gunRenderer()
-            .stats(3f, 2f, 1.8f, 0.5f, 350, 30, 0.2f, 0.1f, 0.1f, 5.0f, 0.9f)
+            .stats(3f, 2f, 1.8f, 0.5f, 350, 30, 0.2f, 0.2f, 0.1f, 5.0f, 0.8f)
             .animatorController(new KettleGunAnimatorController())
             .register();
 
@@ -36,7 +36,7 @@ public class RoaItems {
             .fireModes(GunFireMode.AUTOMATIC_FIRE, GunFireMode.SINGLE_FIRE)
             .startsEmpty()
             .gunRenderer()
-            .stats(2f, 1.6f, 2f, 0.9f, 400, 56, 0.6f, 0.15f, 0.1f, 3.5f, 0.9f)
+            .stats(2f, 1.6f, 2f, 0.9f, 400, 56, 0.6f, 0.15f, 0.1f, 3.5f, 0.8f)
             .animatorController(new RattlerGunAnimatorController())
             .register();
 

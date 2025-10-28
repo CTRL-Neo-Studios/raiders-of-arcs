@@ -4,7 +4,8 @@ import com.mojang.logging.LogUtils;
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.RoaPackets;
 import dev.ctrlneo.roa.foundation.animations.controller.AnimatorController;
-import dev.ctrlneo.roa.foundation.animations.dispatchers.GunItemDispatcher;
+import dev.ctrlneo.roa.foundation.animations.controller.core.AnimationCommand;
+import dev.ctrlneo.roa.foundation.animations.controller.core.AnimationState;
 import dev.ctrlneo.roa.foundation.client.AdsStateManager;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.AttachmentSlot;
@@ -128,9 +129,18 @@ public class GunItem extends Item {
         // Fire the gun!
         fireProjectile(level, player, stack, stats);
 
-        // Fire animations are now handled by AnimatorController on client-side
-        // The client calls GunAnimationStateManager.notifyFire() which sends the proper animation
-        // via UpdateGunAnimationPacket with the correct AzPlayBehavior from the AnimatorController
+        // Fire animation - dispatch from server for efficiency (no extra packet needed!)
+        // Get animation from AnimatorController with proper play behavior
+        if (!level.isClientSide) {
+            boolean isAiming = AdsStateManager.isPlayerAiming(); // This works on server too - synced via AimDownSightsPacket
+            AnimationState fireState = 
+                ((dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController)animatorController)
+                    .getFireState(isAiming);
+            AnimationCommand command = fireState.getAnimationCommand();
+            
+            // Create and dispatch AzCommand using the helper method
+            command.createAzureCommand().sendForItem(player, stack);
+        }
 
         // Update components
         stack.set(RoaDataComponents.GUN_MAGAZINE.get(), magazine.consume(1));
@@ -250,9 +260,17 @@ public class GunItem extends Item {
         // Play reload start sound
         player.playSound(SoundEvents.PISTON_EXTEND, 0.8f, 1.0f);
 
-        // Reload animation is now handled by AnimatorController on client-side
-        // The client calls GunAnimationStateManager.notifyReload() which sends the proper animation
-        // via UpdateGunAnimationPacket with the correct AzPlayBehavior from the AnimatorController
+        // Reload animation - dispatch from server for efficiency (no extra packet needed!)
+        // Get animation from AnimatorController with proper play behavior
+        if (!player.level().isClientSide) {
+            AnimationState reloadState = 
+                ((dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController)animatorController)
+                    .getReloadState();
+            AnimationCommand command = reloadState.getAnimationCommand();
+            
+            // Create and dispatch AzCommand using the helper method
+            command.createAzureCommand().sendForItem(player, stack);
+        }
     }
 
     public void cycleFireMode(ItemStack stack, Player player) {

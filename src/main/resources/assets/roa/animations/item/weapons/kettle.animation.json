@@ -27,6 +27,104 @@
 				}
 			}
 		},
+		"weapon.sprinting.in": {
+			"loop": true,
+			"animation_length": 0.2,
+			"bones": {
+				"weaponbody": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.2": [-33.15724, -30.51737, 28.56198]
+					},
+					"position": {
+						"0.0": [0, 0, 0],
+						"0.2": [5.6, 2.3, 0]
+					}
+				},
+				"leftArm": {
+					"rotation": [-256.24983, -15.56341, 167.58402],
+					"position": [0.21614, -0.86894, -7.91568]
+				},
+				"rightArm": {
+					"rotation": [90, 5, -180],
+					"position": [4.05499, -4, 0.74044]
+				}
+			}
+		},
+		"weapon.sprinting.out": {
+			"loop": true,
+			"animation_length": 0.2,
+			"bones": {
+				"weaponbody": {
+					"rotation": {
+						"0.0": [-33.15724, -30.51737, 28.56198],
+						"0.2": [0, 0, 0]
+					},
+					"position": {
+						"0.0": [5.6, 2.3, 0],
+						"0.2": [0, 0, 0]
+					}
+				},
+				"leftArm": {
+					"rotation": [-256.24983, -15.56341, 167.58402],
+					"position": [0.21614, -0.86894, -7.91568]
+				},
+				"rightArm": {
+					"rotation": [90, 5, -180],
+					"position": [4.05499, -4, 0.74044]
+				}
+			}
+		},
+		"weapon.aim.in": {
+			"loop": true,
+			"animation_length": 0.2,
+			"bones": {
+				"weaponbody": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.2": [0, 0, 45]
+					},
+					"position": {
+						"0.0": [0, 0, 0],
+						"0.1": [2.5, -0.5, -2],
+						"0.2": [3, 2, 0]
+					}
+				},
+				"leftArm": {
+					"rotation": [-256.24983, -15.56341, 167.58402],
+					"position": [0.21614, -0.86894, -7.91568]
+				},
+				"rightArm": {
+					"rotation": [90, 5, -180],
+					"position": [4.05499, -4, 0.74044]
+				}
+			}
+		},
+		"weapon.aim.out": {
+			"loop": true,
+			"animation_length": 0.2,
+			"bones": {
+				"weaponbody": {
+					"rotation": {
+						"0.0": [0, 0, 45],
+						"0.2": [0, 0, 0]
+					},
+					"position": {
+						"0.0": [3, 2, 0],
+						"0.1": [1.5, -0.5, -2],
+						"0.2": [0, 0, 0]
+					}
+				},
+				"leftArm": {
+					"rotation": [-256.24983, -15.56341, 167.58402],
+					"position": [0.21614, -0.86894, -7.91568]
+				},
+				"rightArm": {
+					"rotation": [90, 5, -180],
+					"position": [4.05499, -4, 0.74044]
+				}
+			}
+		},
 		"weapon.reload": {
 			"loop": true,
 			"animation_length": 5,

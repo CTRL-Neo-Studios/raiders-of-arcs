@@ -1,6 +1,8 @@
 package dev.ctrlneo.roa.foundation.animations.controller;
 
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
+import dev.ctrlneo.roa.foundation.animations.controller.core.AnimationState;
+import dev.ctrlneo.roa.foundation.animations.controller.core.AnimationTransition;
 import dev.ctrlneo.roa.foundation.client.AdsStateManager;
 import dev.ctrlneo.roa.foundation.data.components.GunStateComponent;
 import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
@@ -23,6 +25,12 @@ public class GunAnimatorController extends AnimatorController {
     protected final AnimationState AIM_FIRE;
     protected final AnimationState RELOAD;
     
+    // Transition animations (in/out)
+    protected final AnimationState AIM_IN;
+    protected final AnimationState AIM_OUT;
+    protected final AnimationState SPRINT_IN;
+    protected final AnimationState SPRINT_OUT;
+    
     // Transitions
     protected final AnimationTransition[] transitions;
     
@@ -41,26 +49,38 @@ public class GunAnimatorController extends AnimatorController {
         this.AIM_FIRE = new AnimationState("AIM_FIRE", "weapon.aim_fire", AzPlayBehaviors.HOLD_ON_LAST_FRAME, durations.aimFireSeconds);
         this.RELOAD = new AnimationState("RELOAD", "weapon.reload", AzPlayBehaviors.HOLD_ON_LAST_FRAME, durations.reloadSeconds);
         
+        // Transition animations (all 0.2 seconds, HOLD_ON_LAST_FRAME)
+        this.AIM_IN = new AnimationState("AIM_IN", "weapon.aim.in", AzPlayBehaviors.HOLD_ON_LAST_FRAME, 0.2f);
+        this.AIM_OUT = new AnimationState("AIM_OUT", "weapon.aim.out", AzPlayBehaviors.HOLD_ON_LAST_FRAME, 0.2f);
+        this.SPRINT_IN = new AnimationState("SPRINT_IN", "weapon.sprinting.in", AzPlayBehaviors.HOLD_ON_LAST_FRAME, 0.2f);
+        this.SPRINT_OUT = new AnimationState("SPRINT_OUT", "weapon.sprinting.out", AzPlayBehaviors.HOLD_ON_LAST_FRAME, 0.2f);
+        
         // Define transitions (order matters - first match wins!)
         this.transitions = new AnimationTransition[] {
-            // From any state to RELOAD when reloading
+            // From any state to RELOAD when reloading (no transition anim for reload)
             new AnimationTransition(IDLE, RELOAD, this::isReloading),
             new AnimationTransition(AIM, RELOAD, this::isReloading),
             new AnimationTransition(SPRINT, RELOAD, this::isReloading),
             
-            // From any non-reload state to SPRINT when sprinting
-            new AnimationTransition(IDLE, SPRINT, this::isSprinting),
-            new AnimationTransition(AIM, SPRINT, this::isSprinting),
+            // Transition animations complete - go to final state
+            new AnimationTransition(AIM_IN, AIM, (p, i) -> true), // Always transition after AIM_IN finishes
+            new AnimationTransition(AIM_OUT, IDLE, (p, i) -> true), // Always transition after AIM_OUT finishes
+            new AnimationTransition(SPRINT_IN, SPRINT, (p, i) -> true), // Always transition after SPRINT_IN finishes
+            new AnimationTransition(SPRINT_OUT, IDLE, (p, i) -> true), // Always transition after SPRINT_OUT finishes
             
-            // From SPRINT to AIM when aiming (stops sprinting)
+            // From any non-reload state to SPRINT (via transition animation)
+            new AnimationTransition(IDLE, SPRINT_IN, this::isSprinting),
+            new AnimationTransition(AIM, SPRINT, this::isSprinting), // Skip transition from AIM (too complex)
+            
+            // From SPRINT to AIM when aiming (stops sprinting - skip transition for simplicity)
             new AnimationTransition(SPRINT, AIM, this::isAiming),
             
-            // From SPRINT to IDLE when stopped sprinting
-            new AnimationTransition(SPRINT, IDLE, (p, i) -> !isSprinting(p, i)),
+            // From SPRINT to IDLE when stopped sprinting (via transition animation)
+            new AnimationTransition(SPRINT, SPRINT_OUT, (p, i) -> !isSprinting(p, i)),
             
-            // Between IDLE and AIM
-            new AnimationTransition(IDLE, AIM, this::isAiming),
-            new AnimationTransition(AIM, IDLE, (p, i) -> !isAiming(p, i)),
+            // Between IDLE and AIM (via transition animations)
+            new AnimationTransition(IDLE, AIM_IN, this::isAiming),
+            new AnimationTransition(AIM, AIM_OUT, (p, i) -> !isAiming(p, i)),
         };
     }
     
@@ -76,8 +96,15 @@ public class GunAnimatorController extends AnimatorController {
     
     @Override
     protected AnimationState getStateAfterPlayOnce(LocalPlayer player, ItemStack itemStack) {
-        // After PLAY_ONCE animations, return to appropriate loop state
+        // After HOLD_ON_LAST_FRAME animations, determine next state
         
+        // Transition animations always go to their destination state
+        if (currentState == AIM_IN) return AIM;
+        if (currentState == AIM_OUT) return IDLE;
+        if (currentState == SPRINT_IN) return SPRINT;
+        if (currentState == SPRINT_OUT) return IDLE;
+        
+        // After action animations (FIRE, RELOAD), return to appropriate loop state
         // Check priority: Reloading > Sprinting > Aiming > Idle
         if (isReloading(player, itemStack)) {
             return RELOAD;
