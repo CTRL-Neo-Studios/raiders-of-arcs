@@ -9,7 +9,7 @@
     "thirdperson_righthand": {
       "translation": [
         -0.25,
-        0.25,
+        0.75,
         -0.5
       ],
       "scale": [
@@ -21,7 +21,7 @@
     "thirdperson_lefthand": {
       "translation": [
         -0.25,
-        0.25,
+        0.75,
         -0.5
       ],
       "scale": [
@@ -38,7 +38,7 @@
       ],
       "translation": [
         -5.25,
-        -1.5,
+        -3,
         -4
       ]
     },
@@ -50,7 +50,7 @@
       ],
       "translation": [
         -5.25,
-        -1.5,
+        -3,
         -4
       ]
     },
@@ -62,7 +62,7 @@
       ],
       "translation": [
         0.75,
-        -1.5,
+        -3,
         2
       ],
       "scale": [
@@ -79,7 +79,7 @@
       ],
       "translation": [
         1.25,
-        -0.25,
+        -0.5,
         0
       ],
       "scale": [
@@ -96,7 +96,7 @@
       ],
       "translation": [
         0,
-        -15,
+        -16.5,
         4.25
       ],
       "scale": [
@@ -113,7 +113,7 @@
       ],
       "translation": [
         -2,
-        -0.25,
+        0,
         0.5
       ],
       "scale": [
@@ -130,7 +130,7 @@
       ],
       "translation": [
         0,
-        -18,
+        -19.5,
         9.5
       ],
       "scale": [
