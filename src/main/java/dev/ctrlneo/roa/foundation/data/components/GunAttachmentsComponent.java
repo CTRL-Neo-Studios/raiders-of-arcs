@@ -4,7 +4,9 @@ import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.data.structures.AttachmentSlot;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public record GunAttachmentsComponent(
@@ -66,17 +68,18 @@ public record GunAttachmentsComponent(
     }
 
     /**
-     * Combine all attachment modifiers
+     * Combine all attachment modifiers into a single list.
+     * Used by GunUtils to apply attachment effects using the unified modifier system.
      */
-    public AttachmentModifiersComponent getCombinedModifiers() {
-        AttachmentModifiersComponent combined = AttachmentModifiersComponent.EMPTY;
+    public List<GunAttributeModifier> getCombinedModifiers() {
+        List<GunAttributeModifier> combined = new ArrayList<>();
 
         for (AttachmentSlot slot : AttachmentSlot.values()) {
             ItemStack attachment = getAttachment(slot);
             if (!attachment.isEmpty()) {
                 AttachmentModifiersComponent mods = attachment.get(RoaDataComponents.ATTACHMENT_MODIFIERS.get());
                 if (mods != null) {
-                    combined = combined.combine(mods);
+                    combined.addAll(mods.modifiers());
                 }
             }
         }

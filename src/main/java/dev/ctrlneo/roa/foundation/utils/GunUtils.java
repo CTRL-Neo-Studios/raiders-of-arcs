@@ -66,10 +66,14 @@ public class GunUtils {
 
     /**
      * Gets the effective stats of a gun including level bonuses and attachment modifiers.
+     * Both use the unified GunAttributeModifier system for consistency.
+     * 
      * Calculation order:
      * 1. Start with base stats
      * 2. Apply level modifiers (using GunAttributeModifier system)
-     * 3. Apply attachment modifiers
+     * 3. Apply attachment modifiers (using GunAttributeModifier system)
+     * 
+     * Within each modifier application: ADD → MULTIPLY_BASE → MULTIPLY_TOTAL
      */
     public static GunStatsComponent getEffectiveStats(ItemStack gunStack) {
         GunStatsComponent baseStats = gunStack.get(RoaDataComponents.GUN_STATS.get());
@@ -86,14 +90,14 @@ public class GunUtils {
             }
         }
 
-        // Step 2: Apply attachment modifiers
+        // Step 2: Apply attachment modifiers using the same unified system
         GunAttachmentsComponent attachments = gunStack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
         if (attachments == null || !attachments.hasAnyAttachments()) {
             return statsWithLevel;
         }
 
-        AttachmentModifiersComponent combinedMods = attachments.getCombinedModifiers();
-        return statsWithLevel.withAttachmentModifiers(combinedMods);
+        List<GunAttributeModifier> attachmentMods = attachments.getCombinedModifiers();
+        return applyAttributeModifiers(statsWithLevel, attachmentMods);
     }
 
     /**

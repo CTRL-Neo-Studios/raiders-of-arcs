@@ -37,21 +37,6 @@ public record GunStatsComponent(
         return (int)(unholsterSpeed * 20);
     }
 
-    /**
-     * Apply attachment modifiers to create a new stats component
-     */
-    public GunStatsComponent withAttachmentModifiers(AttachmentModifiersComponent modifiers) {
-        return new GunStatsComponent(
-                damage + modifiers.damageBonus(),
-                Math.min(1.0f, accuracy * modifiers.accuracyMultiplier()),
-                recoilVertical * modifiers.recoilMultiplier(),
-                recoilHorizontal * modifiers.recoilMultiplier(),
-                fireRate,
-                range + modifiers.rangeBonus(),
-                Math.min(1.0f, armorPenetration + modifiers.armorPenetrationBonus()),
-                adsSpeed * modifiers.adsSpeedMultiplier(),
-                unholsterSpeed,
-                fovZoomMultiplier // Keep FOV zoom unchanged by attachments (for now)
-        );
-    }
+    // Note: Attachment modifiers are now applied using the unified GunAttributeModifier system
+    // in GunUtils.getEffectiveStats(), not here.
 }

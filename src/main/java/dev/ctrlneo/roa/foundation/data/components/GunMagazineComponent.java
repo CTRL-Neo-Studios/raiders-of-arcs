@@ -1,10 +1,14 @@
 package dev.ctrlneo.roa.foundation.data.components;
 
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
+import dev.ctrlneo.roa.foundation.data.components.GunAttributeModifier.GunAttribute;
+import dev.ctrlneo.roa.foundation.data.components.GunAttributeModifier.ModifierOperation;
 import dev.ctrlneo.roa.foundation.utils.GunUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.List;
 
 public record GunMagazineComponent(
         int currentAmmo,
@@ -26,7 +30,13 @@ public record GunMagazineComponent(
             AttachmentModifiersComponent mods = attachments.magazine()
                     .get(RoaDataComponents.ATTACHMENT_MODIFIERS.get());
             if (mods != null) {
-                capacity += mods.magazineCapacityBonus();
+                // Extract MAGAZINE_CAPACITY modifiers from the new unified system
+                List<GunAttributeModifier> modifiers = mods.modifiers();
+                for (GunAttributeModifier mod : modifiers) {
+                    if (mod.attribute() == GunAttribute.MAGAZINE_CAPACITY && mod.operation() == ModifierOperation.ADD) {
+                        capacity += (int) mod.value();
+                    }
+                }
             }
         }
 
@@ -46,7 +56,13 @@ public record GunMagazineComponent(
             AttachmentModifiersComponent mods = attachments.magazine()
                     .get(RoaDataComponents.ATTACHMENT_MODIFIERS.get());
             if (mods != null) {
-                capacity += mods.magazineCapacityBonus();
+                // Extract MAGAZINE_CAPACITY modifiers from the new unified system
+                List<GunAttributeModifier> modifiers = mods.modifiers();
+                for (GunAttributeModifier mod : modifiers) {
+                    if (mod.attribute() == GunAttribute.MAGAZINE_CAPACITY && mod.operation() == ModifierOperation.ADD) {
+                        capacity += (int) mod.value();
+                    }
+                }
             }
         }
 
