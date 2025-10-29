@@ -57,6 +57,18 @@ public class RecoilManager {
         currentRecoilPitch = targetRecoilPitch;
         currentRecoilYaw = targetRecoilYaw;
         
+        // CRITICAL FIX: Actually rotate the player's view angles!
+        // This ensures bullets go where the crosshair is pointing
+        float newPitch = mc.player.getXRot() - scaledPitch; // Negative for upward
+        float newYaw = mc.player.getYRot() + scaledYaw;
+        
+        // Clamp pitch to valid range [-90, 90]
+        newPitch = Mth.clamp(newPitch, -90.0f, 90.0f);
+        
+        // Set the player's actual view rotation (this is what the server uses!)
+        mc.player.setXRot(newPitch);
+        mc.player.setYRot(newYaw);
+        
         // Cancel recovery - we're firing again!
         isRecovering = false;
         recoveryProgress = 0.0f;
@@ -90,6 +102,10 @@ public class RecoilManager {
                 recoveryStartYaw = targetRecoilYaw;
             }
             
+            // Calculate how much to recover this tick
+            float prevTargetPitch = targetRecoilPitch;
+            float prevTargetYaw = targetRecoilYaw;
+            
             // Increment recovery progress
             recoveryProgress = Math.min(1.0f, recoveryProgress + (1.0f / RECOIL_RECOVERY_DURATION));
             
@@ -103,6 +119,19 @@ public class RecoilManager {
             // Current follows target during recovery
             currentRecoilPitch = targetRecoilPitch;
             currentRecoilYaw = targetRecoilYaw;
+            
+            // Apply the recovery delta to player's actual view rotation
+            float pitchDelta = targetRecoilPitch - prevTargetPitch;
+            float yawDelta = targetRecoilYaw - prevTargetYaw;
+            
+            float newPitch = player.getXRot() + pitchDelta;
+            float newYaw = player.getYRot() + yawDelta;
+            
+            // Clamp pitch to valid range
+            newPitch = Mth.clamp(newPitch, -90.0f, 90.0f);
+            
+            player.setXRot(newPitch);
+            player.setYRot(newYaw);
 
             // Snap to 0 if very close
             if (Math.abs(targetRecoilPitch) < 0.01f) {

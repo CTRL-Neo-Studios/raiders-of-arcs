@@ -231,6 +231,11 @@ public class ClientTickHandler {
 
                 AdsStateManager.setAiming(newAiming);
                 RoaPackets.sendToServer(new AimDownSightsPacket(InteractionHand.MAIN_HAND, newAiming));
+                
+                // Cancel sprint when starting to aim
+                if (newAiming && player.isSprinting()) {
+                    player.setSprinting(false);
+                }
             }
         }
         
