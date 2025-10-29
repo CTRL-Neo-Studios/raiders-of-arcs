@@ -4,9 +4,7 @@ import dev.ctrlneo.roa.Roa;
 import dev.ctrlneo.roa.foundation.data.codecs.RoaDataCodecs;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class RoaDataComponents {
 
@@ -61,6 +59,13 @@ public class RoaDataComponents {
                             .persistent(RoaDataCodecs.GUN_RELOAD_COMPONENT_CODEC)
                             .networkSynchronized(RoaDataCodecs.STREAM_GUN_RELOAD_COMPONENT_CODEC)
                             .cacheEncoding()
+                            .build());
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GunLevelComponent>> GUN_LEVEL =
+            Roa.DATA_COMPONENTS.register("gun_level", () ->
+                    DataComponentType.<GunLevelComponent>builder()
+                            .persistent(GunLevelComponent.CODEC)
+                            .networkSynchronized(GunLevelComponent.STREAM_CODEC)
                             .build());
 
 

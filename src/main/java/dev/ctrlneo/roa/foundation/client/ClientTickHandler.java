@@ -193,7 +193,7 @@ public class ClientTickHandler {
                     player.displayClientMessage(
                             Component.translatable("gui.roa.reloaded",
                                     magazine.currentAmmo(),
-                                    magazine.getEffectiveCapacity(attachments)),
+                                    magazine.getEffectiveCapacity(gunStack, attachments)),
                             true);
                 }
 

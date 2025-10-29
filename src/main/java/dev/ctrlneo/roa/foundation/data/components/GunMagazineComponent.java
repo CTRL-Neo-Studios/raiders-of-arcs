@@ -1,8 +1,10 @@
 package dev.ctrlneo.roa.foundation.data.components;
 
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
+import dev.ctrlneo.roa.foundation.utils.GunUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public record GunMagazineComponent(
         int currentAmmo,
@@ -10,8 +12,33 @@ public record GunMagazineComponent(
         Holder<Item> ammoType
 ) {
     /**
-     * Calculate effective capacity including magazine attachments
+     * Calculate effective capacity including level bonuses and magazine attachments.
+     * This is the preferred method when you have the ItemStack available.
      */
+    public int getEffectiveCapacity(ItemStack gunStack, GunAttachmentsComponent attachments) {
+        int capacity = baseCapacity;
+
+        // Add level bonuses
+        capacity += GunUtils.getLevelMagazineBonus(gunStack);
+
+        // Add attachment bonuses
+        if (attachments != null && !attachments.magazine().isEmpty()) {
+            AttachmentModifiersComponent mods = attachments.magazine()
+                    .get(RoaDataComponents.ATTACHMENT_MODIFIERS.get());
+            if (mods != null) {
+                capacity += mods.magazineCapacityBonus();
+            }
+        }
+
+        return capacity;
+    }
+
+    /**
+     * Calculate effective capacity including only magazine attachments (no level bonuses).
+     * Use the overload with ItemStack parameter when possible.
+     * @deprecated Use getEffectiveCapacity(ItemStack, GunAttachmentsComponent) instead
+     */
+    @Deprecated
     public int getEffectiveCapacity(GunAttachmentsComponent attachments) {
         int capacity = baseCapacity;
 

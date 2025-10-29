@@ -76,7 +76,7 @@ public class ServerReloadHandler {
             player.displayClientMessage(
                     net.minecraft.network.chat.Component.translatable("gui.roa.reloaded",
                             magazine.currentAmmo(),
-                            magazine.getEffectiveCapacity(attachments)),
+                            magazine.getEffectiveCapacity(gunStack, attachments)),
                     true
             );
         }

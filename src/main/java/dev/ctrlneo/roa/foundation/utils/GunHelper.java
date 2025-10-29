@@ -20,7 +20,7 @@ public class GunHelper {
         GunMagazineComponent magazine = gunStack.get(RoaDataComponents.GUN_MAGAZINE.get());
         if (magazine == null) return;
 
-        int effectiveCapacity = magazine.getEffectiveCapacity(attachments);
+        int effectiveCapacity = magazine.getEffectiveCapacity(gunStack, attachments);
         int needed = effectiveCapacity - magazine.currentAmmo();
         int available = player.getInventory().countItem(magazine.ammoType().value());
         int toReload = Math.min(needed, available);

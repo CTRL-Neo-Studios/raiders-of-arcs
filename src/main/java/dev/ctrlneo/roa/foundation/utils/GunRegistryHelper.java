@@ -8,6 +8,7 @@ import dev.ctrlneo.roa.foundation.client.renderer.GunItemRenderer;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.AmmoType;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
+import dev.ctrlneo.roa.foundation.data.structures.GunLevelConfig;
 import dev.ctrlneo.roa.foundation.data.structures.ReloadType;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import mod.azure.azurelib.common.render.item.AzItemRenderer;
@@ -55,6 +56,7 @@ public class GunRegistryHelper {
         private ReloadType reloadType = ReloadType.ONE_SHOT;
         private int sequenceRounds = 1;
         private float sequenceDurationSeconds = 0.5f;
+        private GunLevelConfig levelConfig = GunLevelConfig.DEFAULT;
 
         private GunBuilder(String name) {
             this.name = name;
@@ -206,6 +208,16 @@ public class GunRegistryHelper {
         }
 
         /**
+         * Sets the gun's level configuration.
+         * Defines max level and stat bonuses per level.
+         * @param levelConfig The level configuration
+         */
+        public GunBuilder levelConfig(GunLevelConfig levelConfig) {
+            this.levelConfig = levelConfig;
+            return this;
+        }
+
+        /**
          * Registers the gun with all configured components
          */
         public DeferredItem<GunItem> register() {
@@ -232,6 +244,7 @@ public class GunRegistryHelper {
                     magazineComponent,
                     fireModesComponent,
                     reloadComponent,
+                    levelConfig,
                     animatorController
             ));
 

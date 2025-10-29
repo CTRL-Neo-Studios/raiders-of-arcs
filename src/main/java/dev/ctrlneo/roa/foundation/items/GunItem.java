@@ -10,6 +10,7 @@ import dev.ctrlneo.roa.foundation.client.AdsStateManager;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.AttachmentSlot;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
+import dev.ctrlneo.roa.foundation.data.structures.GunLevelConfig;
 import dev.ctrlneo.roa.foundation.data.structures.ReloadType;
 import dev.ctrlneo.roa.foundation.entity.BulletEntity;
 import dev.ctrlneo.roa.foundation.network.packets.ApplyRecoilPacket;
@@ -45,6 +46,7 @@ public class GunItem extends Item {
     private final GunMagazineComponent defaultMagazine;
     private final GunFireModesComponent defaultFireModes;
     private final GunReloadComponent defaultReload;
+    private final GunLevelConfig levelConfig;
     public final AnimatorController animatorController;
 
     public GunItem(Properties properties,
@@ -52,12 +54,14 @@ public class GunItem extends Item {
             GunMagazineComponent magazine,
             GunFireModesComponent fireModes,
             GunReloadComponent reload,
+            GunLevelConfig levelConfig,
             AnimatorController animatorController) {
         super(properties.stacksTo(1));
         this.defaultStats = stats;
         this.defaultMagazine = magazine;
         this.defaultFireModes = fireModes;
         this.defaultReload = reload;
+        this.levelConfig = levelConfig;
         this.animatorController = animatorController;
     }
 
@@ -71,12 +75,17 @@ public class GunItem extends Item {
         stack.set(RoaDataComponents.GUN_RELOAD.get(), defaultReload);
         stack.set(RoaDataComponents.GUN_STATE.get(), GunStateComponent.DEFAULT);
         stack.set(RoaDataComponents.GUN_ATTACHMENTS.get(), GunAttachmentsComponent.EMPTY);
+        stack.set(RoaDataComponents.GUN_LEVEL.get(), GunLevelComponent.DEFAULT);
         return stack;
     }
 
     // Getters for default values
     public GunStatsComponent getDefaultStats() {
         return defaultStats;
+    }
+
+    public GunLevelConfig getLevelConfig() {
+        return levelConfig;
     }
 
     public GunMagazineComponent getDefaultMagazine() {
@@ -280,7 +289,7 @@ public class GunItem extends Item {
             player.getCooldowns().addCooldown(this, reloadTicks + transitionInTicks);
         } else {
             // Sequential reload: multiple animations, per-sequence refill
-            int maxCapacity = magazine.getEffectiveCapacity(attachments);
+            int maxCapacity = magazine.getEffectiveCapacity(stack, attachments);
             int currentAmmo = magazine.currentAmmo();
             int roundsNeeded = maxCapacity - currentAmmo;
             
@@ -425,7 +434,7 @@ public class GunItem extends Item {
                         serverPlayer.displayClientMessage(
                                 Component.translatable("gui.roa.reloaded",
                                         magazine.currentAmmo(),
-                                        magazine.getEffectiveCapacity(attachments)),
+                                        magazine.getEffectiveCapacity(stack, attachments)),
                                 true);
                     }
                 }
@@ -441,7 +450,7 @@ public class GunItem extends Item {
                     if (magazine == null) return;
                     
                     int roundsToAdd = state.currentSequenceRounds();
-                    int maxCapacity = magazine.getEffectiveCapacity(attachments);
+                    int maxCapacity = magazine.getEffectiveCapacity(stack, attachments);
                     int newAmmo = Math.min(magazine.currentAmmo() + roundsToAdd, maxCapacity);
                     
                     // Update magazine
@@ -511,6 +520,9 @@ public class GunItem extends Item {
         if (!stack.has(RoaDataComponents.GUN_STATE.get())) {
             stack.set(RoaDataComponents.GUN_STATE.get(), GunStateComponent.DEFAULT);
         }
+        if (!stack.has(RoaDataComponents.GUN_LEVEL.get())) {
+            stack.set(RoaDataComponents.GUN_LEVEL.get(), GunLevelComponent.DEFAULT);
+        }
         if (!stack.has(RoaDataComponents.GUN_ATTACHMENTS.get())) {
             stack.set(RoaDataComponents.GUN_ATTACHMENTS.get(), GunAttachmentsComponent.EMPTY);
         }
@@ -543,8 +555,20 @@ public class GunItem extends Item {
                     maxDurability).withStyle(durabilityColor));
         }
 
+        // Level info
+        GunLevelComponent level = stack.get(RoaDataComponents.GUN_LEVEL.get());
+        if (level != null && levelConfig.maxLevel() > 1) {
+            ChatFormatting levelColor = level.currentLevel() == levelConfig.maxLevel() 
+                    ? ChatFormatting.GOLD 
+                    : ChatFormatting.AQUA;
+            tooltipComponents.add(Component.translatable(
+                    "tooltip.roa.level",
+                    level.currentLevel(),
+                    levelConfig.maxLevel()).withStyle(levelColor));
+        }
+
         // Magazine info
-        int effectiveCapacity = magazine.getEffectiveCapacity(attachments);
+        int effectiveCapacity = magazine.getEffectiveCapacity(stack, attachments);
         tooltipComponents.add(Component.translatable(
                 "tooltip.roa.ammo",
                 magazine.currentAmmo(),
@@ -552,9 +576,19 @@ public class GunItem extends Item {
 
         if (effectiveCapacity > magazine.baseCapacity()) {
             int bonus = effectiveCapacity - magazine.baseCapacity();
-            tooltipComponents.add(Component.translatable(
-                    "tooltip.roa.extended_mag_bonus",
-                    bonus).withStyle(ChatFormatting.GREEN));
+            int levelBonus = GunUtils.getLevelMagazineBonus(stack);
+            int attachmentBonus = bonus - levelBonus;
+            
+            if (levelBonus > 0) {
+                tooltipComponents.add(Component.translatable(
+                        "tooltip.roa.level_mag_bonus",
+                        levelBonus).withStyle(ChatFormatting.AQUA));
+            }
+            if (attachmentBonus > 0) {
+                tooltipComponents.add(Component.translatable(
+                        "tooltip.roa.extended_mag_bonus",
+                        attachmentBonus).withStyle(ChatFormatting.GREEN));
+            }
         }
 
         // Fire mode info
