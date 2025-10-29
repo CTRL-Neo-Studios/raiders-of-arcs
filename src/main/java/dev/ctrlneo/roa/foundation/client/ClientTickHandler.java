@@ -60,6 +60,13 @@ public class ClientTickHandler {
 
         // At this point we know we're holding a gun
         GunItem gunItem = (GunItem) mainHandStack.getItem();
+        
+        // Check if player just switched to this gun (trigger unholster animation)
+        boolean justSwitchedToGun = !ItemStack.isSameItem(mainHandStack, prevMainHandStack) || 
+                                     !(prevMainHandStack.getItem() instanceof GunItem);
+        if (justSwitchedToGun) {
+            triggerUnholster(mainHandStack, player, gunItem);
+        }
 
         // Check if we switched items while reloading
         if (!ItemStack.isSameItem(mainHandStack, prevMainHandStack)) {
@@ -88,6 +95,9 @@ public class ClientTickHandler {
 
         // Check reload completion
         checkReloadCompletion(mainHandStack, player);
+        
+        // Check unholster completion
+        checkUnholsterCompletion(mainHandStack, player, gunItem);
 
         // Handle ADS hold mode
         handleAdsHoldMode(mc, mainHandStack);
@@ -120,6 +130,37 @@ public class ClientTickHandler {
             player.playSound(SoundEvents.ITEM_BREAK, 0.5f, 1.2f);
         }
     }
+    
+    private static void triggerUnholster(ItemStack gunStack, LocalPlayer player, GunItem gunItem) {
+        GunStateComponent state = gunStack.get(RoaDataComponents.GUN_STATE.get());
+        if (state == null) return;
+        
+        // Start unholster
+        long currentTime = player.level().getGameTime();
+        gunStack.set(RoaDataComponents.GUN_STATE.get(), state.withUnholstering(true, currentTime));
+        
+        // Play unholster sound (optional)
+        player.playSound(SoundEvents.ARMOR_EQUIP_GENERIC.value(), 0.8f, 1.0f);
+    }
+    
+    private static void checkUnholsterCompletion(ItemStack gunStack, LocalPlayer player, GunItem gunItem) {
+        GunStateComponent state = gunStack.get(RoaDataComponents.GUN_STATE.get());
+        if (state == null || !state.isUnholstering()) {
+            return;
+        }
+        
+        GunStatsComponent stats = GunUtils.getEffectiveStats(gunStack);
+        long currentTime = player.level().getGameTime();
+        
+        // Check if unholster is complete
+        if (state.isUnholsterComplete(currentTime, stats.getUnholsterTicks())) {
+            // Complete unholster
+            gunStack.set(RoaDataComponents.GUN_STATE.get(), state.completeUnholster());
+            
+            // Play ready sound (optional)
+            player.playSound(SoundEvents.ARMOR_EQUIP_GENERIC.value(), 0.6f, 1.2f);
+        }
+    }
 
     private static void checkReloadCompletion(ItemStack gunStack, LocalPlayer player) {
         GunStateComponent state = gunStack.get(RoaDataComponents.GUN_STATE.get());
@@ -127,32 +168,42 @@ public class ClientTickHandler {
             return;
         }
 
-        GunStatsComponent stats = GunUtils.getEffectiveStats(gunStack);
+        GunReloadComponent reloadConfig = gunStack.get(RoaDataComponents.GUN_RELOAD.get());
+        if (reloadConfig == null) return;
+        
         long currentTime = player.level().getGameTime();
+        
+        // Note: The actual reload logic (adding ammo) happens server-side in GunItem.inventoryTick
+        // This client-side check is mainly for animation transitions and sound feedback
+        
+        if (reloadConfig.reloadType() == dev.ctrlneo.roa.foundation.data.structures.ReloadType.ONE_SHOT) {
+            // One-shot reload: check if full reload is complete
+            if (state.isReloadComplete(currentTime, reloadConfig.getReloadDurationTicks())) {
+                // Complete the reload
+                GunAttachmentsComponent attachments = gunStack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
+                GunHelper.reload(gunStack, player, attachments);
+                gunStack.set(RoaDataComponents.GUN_STATE.get(), state.completeReload());
 
-        // Check if reload is complete
-        if (state.isReloadComplete(currentTime, stats.getReloadTicks())) {
-            // Complete the reload
-            GunAttachmentsComponent attachments = gunStack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
-            GunHelper.reload(gunStack, player, attachments);
-            gunStack.set(RoaDataComponents.GUN_STATE.get(), state.completeReload());
+                // Play reload complete sound
+                player.playSound(SoundEvents.PISTON_CONTRACT, 0.8f, 1.0f);
 
-            // Play reload complete sound
-            player.playSound(SoundEvents.PISTON_CONTRACT, 0.8f, 1.0f);
+                // Show message
+                GunMagazineComponent magazine = gunStack.get(RoaDataComponents.GUN_MAGAZINE.get());
+                if (magazine != null) {
+                    player.displayClientMessage(
+                            Component.translatable("gui.roa.reloaded",
+                                    magazine.currentAmmo(),
+                                    magazine.getEffectiveCapacity(attachments)),
+                            true);
+                }
 
-            // Show message
-            GunMagazineComponent magazine = gunStack.get(RoaDataComponents.GUN_MAGAZINE.get());
-            if (magazine != null) {
-                player.displayClientMessage(
-                        Component.translatable("gui.roa.reloaded",
-                                magazine.currentAmmo(),
-                                magazine.getEffectiveCapacity(attachments)),
-                        true);
+                // Transition animation back to appropriate state
+                // The GunAnimationStateManager will pick the right animation on next tick
             }
-
-            // Transition animation back to appropriate state
-            // The GunAnimationStateManager will pick the right animation on next tick
-            // (idle, aim, or sprint depending on what player is doing)
+        } else {
+            // Sequential reload: client-side only handles animation transitions
+            // The server handles the actual ammo addition in GunItem.inventoryTick
+            // No client-side action needed here - server will sync the state
         }
     }
 

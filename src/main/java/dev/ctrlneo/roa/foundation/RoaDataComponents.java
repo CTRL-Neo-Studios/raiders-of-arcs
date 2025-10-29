@@ -55,6 +55,14 @@ public class RoaDataComponents {
                             .cacheEncoding()
                             .build());
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GunReloadComponent>> GUN_RELOAD =
+            Roa.DATA_COMPONENTS.register("gun_reload", () ->
+                    DataComponentType.<GunReloadComponent>builder()
+                            .persistent(RoaDataCodecs.GUN_RELOAD_COMPONENT_CODEC)
+                            .networkSynchronized(RoaDataCodecs.STREAM_GUN_RELOAD_COMPONENT_CODEC)
+                            .cacheEncoding()
+                            .build());
+
 
     public static void register() {
 

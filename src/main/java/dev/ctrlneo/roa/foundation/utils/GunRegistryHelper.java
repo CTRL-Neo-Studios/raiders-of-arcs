@@ -8,6 +8,7 @@ import dev.ctrlneo.roa.foundation.client.renderer.GunItemRenderer;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.AmmoType;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
+import dev.ctrlneo.roa.foundation.data.structures.ReloadType;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import mod.azure.azurelib.common.render.item.AzItemRenderer;
 import net.minecraft.world.item.Item;
@@ -51,6 +52,9 @@ public class GunRegistryHelper {
         private int durability = 1000;
         private Supplier<AzItemRenderer> renderer;
         private AnimatorController animatorController = new GunAnimatorController();
+        private ReloadType reloadType = ReloadType.ONE_SHOT;
+        private int sequenceRounds = 1;
+        private float sequenceDurationSeconds = 0.5f;
 
         private GunBuilder(String name) {
             this.name = name;
@@ -67,15 +71,15 @@ public class GunRegistryHelper {
          * @param penetration Armor penetration (0.0 - 1.0)
          * @param adsSpeed Time needed to fully enter/exit aim down sight, in seconds
          * @param unholsterSpeed The time it takes to take the gun out, in seconds
-         * @param reloadSpeed The time it takes to reload the gun, in seconds
+         * @param fovZoomMultiplier FOV zoom multiplier when ADS (1.0 = no zoom)
          */
         public GunBuilder stats(float damage, float accuracy, float recoilVertical,
                                 float recoilHorizontal, int fireRate, float range,
                                 float penetration, float adsSpeed, float unholsterSpeed,
-                                float reloadSpeed, float fovZoomMultiplier) {
+                                float fovZoomMultiplier) {
             this.stats = new GunStatsComponent(
                     damage, accuracy, recoilVertical, recoilHorizontal,
-                    fireRate, range, penetration, adsSpeed, unholsterSpeed, reloadSpeed, fovZoomMultiplier
+                    fireRate, range, penetration, adsSpeed, unholsterSpeed, fovZoomMultiplier
             );
             return this;
         }
@@ -85,10 +89,9 @@ public class GunRegistryHelper {
          */
         public GunBuilder stats(float damage, float accuracy, float recoilVertical,
                                 float recoilHorizontal, int fireRate, float range,
-                                float penetration, float adsSpeed, float unholsterSpeed,
-                                float reloadSpeed) {
+                                float penetration, float adsSpeed, float unholsterSpeed) {
             return stats(damage, accuracy, recoilVertical, recoilHorizontal, fireRate, range, 
-                        penetration, adsSpeed, unholsterSpeed, reloadSpeed, 1.0f);
+                        penetration, adsSpeed, unholsterSpeed, 1.0f);
         }
 
         /**
@@ -173,6 +176,36 @@ public class GunRegistryHelper {
         }
 
         /**
+         * Configures reload behavior for this gun.
+         * @param reloadType ONE_SHOT (magazine swap) or SEQUENTIAL (per-cartridge like shotgun)
+         * @param durationSeconds Duration in seconds: for ONE_SHOT = full reload, for SEQUENTIAL = per-sequence
+         * @param sequenceRounds How many rounds are loaded per sequence (only used for SEQUENTIAL)
+         */
+        public GunBuilder reload(ReloadType reloadType, float durationSeconds, int sequenceRounds) {
+            this.reloadType = reloadType;
+            this.sequenceDurationSeconds = durationSeconds;
+            this.sequenceRounds = sequenceRounds;
+            return this;
+        }
+
+        /**
+         * Convenience method for one-shot reloads (magazine swaps).
+         * @param durationSeconds Duration of the full reload animation in seconds
+         */
+        public GunBuilder reloadOneShot(float durationSeconds) {
+            return reload(ReloadType.ONE_SHOT, durationSeconds, 1);
+        }
+
+        /**
+         * Convenience method for sequential reloads (shotgun-style).
+         * @param roundsPerSequence How many rounds to load per animation sequence
+         * @param sequenceDurationSeconds Duration of each reload sequence in seconds
+         */
+        public GunBuilder reloadSequential(int roundsPerSequence, float sequenceDurationSeconds) {
+            return reload(ReloadType.SEQUENTIAL, sequenceDurationSeconds, roundsPerSequence);
+        }
+
+        /**
          * Registers the gun with all configured components
          */
         public DeferredItem<GunItem> register() {
@@ -186,6 +219,11 @@ public class GunRegistryHelper {
                     defaultFireMode,
                     List.copyOf(availableFireModes)
             );
+            GunReloadComponent reloadComponent = new GunReloadComponent(
+                    reloadType,
+                    sequenceDurationSeconds,
+                    sequenceRounds
+            );
 
             DeferredItem<GunItem> item = Roa.ITEMS.register(name, () -> new GunItem(
                     new Item.Properties()
@@ -193,6 +231,7 @@ public class GunRegistryHelper {
                     statsComponent,
                     magazineComponent,
                     fireModesComponent,
+                    reloadComponent,
                     animatorController
             ));
 

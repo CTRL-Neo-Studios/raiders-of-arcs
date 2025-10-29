@@ -3,11 +3,10 @@ package dev.ctrlneo.roa.foundation.events;
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.data.components.GunAttachmentsComponent;
 import dev.ctrlneo.roa.foundation.data.components.GunMagazineComponent;
+import dev.ctrlneo.roa.foundation.data.components.GunReloadComponent;
 import dev.ctrlneo.roa.foundation.data.components.GunStateComponent;
-import dev.ctrlneo.roa.foundation.data.components.GunStatsComponent;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import dev.ctrlneo.roa.foundation.utils.GunHelper;
-import dev.ctrlneo.roa.foundation.utils.GunUtils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
@@ -48,10 +47,14 @@ public class ServerReloadHandler {
         playerReloadingGuns.put(player.getUUID(), mainHandStack.copy());
 
         // Check reload completion
-        GunStatsComponent stats = GunUtils.getEffectiveStats(mainHandStack);
+        GunReloadComponent reloadConfig = mainHandStack.get(RoaDataComponents.GUN_RELOAD.get());
+        if (reloadConfig == null) {
+            return;
+        }
+
         long currentTime = player.level().getGameTime();
 
-        if (state.isReloadComplete(currentTime, stats.getReloadTicks())) {
+        if (state.isReloadComplete(currentTime, reloadConfig.getReloadDurationTicks())) {
             completeReload(mainHandStack, player);
         }
     }

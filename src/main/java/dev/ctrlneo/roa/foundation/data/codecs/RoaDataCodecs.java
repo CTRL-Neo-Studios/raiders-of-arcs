@@ -61,7 +61,6 @@ public class RoaDataCodecs {
                     Codec.FLOAT.fieldOf("armor_penetration").forGetter(GunStatsComponent::armorPenetration),
                     Codec.FLOAT.fieldOf("ads_speed").forGetter(GunStatsComponent::adsSpeed),
                     Codec.FLOAT.fieldOf("unholster_speed").forGetter(GunStatsComponent::unholsterSpeed),
-                    Codec.FLOAT.fieldOf("reload_speed").forGetter(GunStatsComponent::reloadSpeed),
                     Codec.FLOAT.fieldOf("fov_zoom_multiplier").forGetter(GunStatsComponent::fovZoomMultiplier)
             ).apply(instance, GunStatsComponent::new));
 
@@ -79,7 +78,6 @@ public class RoaDataCodecs {
                             buffer.readFloat(),  // armorPenetration
                             buffer.readFloat(),  // adsSpeed
                             buffer.readFloat(),  // unholsterSpeed
-                            buffer.readFloat(),  // reloadSpeed
                             buffer.readFloat()   // fov_zoom_multiplier
                     );
                 }
@@ -95,7 +93,6 @@ public class RoaDataCodecs {
                     buffer.writeFloat(value.armorPenetration());
                     buffer.writeFloat(value.adsSpeed());
                     buffer.writeFloat(value.unholsterSpeed());
-                    buffer.writeFloat(value.reloadSpeed());
                     buffer.writeFloat(value.fovZoomMultiplier());
                 }
             };
@@ -105,18 +102,45 @@ public class RoaDataCodecs {
             RecordCodecBuilder.create(instance -> instance.group(
                     Codec.BOOL.fieldOf("is_reloading").forGetter(GunStateComponent::isReloading),
                     Codec.LONG.fieldOf("reload_start_time").forGetter(GunStateComponent::reloadStartTime),
+                    Codec.INT.fieldOf("current_sequence_rounds").forGetter(GunStateComponent::currentSequenceRounds),
+                    Codec.BOOL.fieldOf("is_unholstering").forGetter(GunStateComponent::isUnholstering),
+                    Codec.LONG.fieldOf("unholster_start_time").forGetter(GunStateComponent::unholsterStartTime),
                     Codec.LONG.fieldOf("last_fire_time").forGetter(GunStateComponent::lastFireTime),
                     Codec.INT.fieldOf("burst_shots_fired").forGetter(GunStateComponent::burstShotsFired)
             ).apply(instance, GunStateComponent::new));
 
     public static final StreamCodec<ByteBuf, GunStateComponent> STREAM_GUN_STATE_COMPONENT_CODEC =
-            StreamCodec.composite(
-                    ByteBufCodecs.BOOL, GunStateComponent::isReloading,
-                    ByteBufCodecs.VAR_LONG, GunStateComponent::reloadStartTime,
-                    ByteBufCodecs.VAR_LONG, GunStateComponent::lastFireTime,
-                    ByteBufCodecs.VAR_INT, GunStateComponent::burstShotsFired,
-                    GunStateComponent::new
-            );
+            new StreamCodec<>() {
+                @Override
+                public GunStateComponent decode(ByteBuf buffer) {
+                    return new GunStateComponent(
+                            buffer.readBoolean(),  // isReloading
+                            buffer.readLong(),     // reloadStartTime
+                            buffer.readInt(),      // currentSequenceRounds
+                            buffer.readBoolean(),  // isUnholstering
+                            buffer.readLong(),     // unholsterStartTime
+                            buffer.readLong(),     // lastFireTime
+                            buffer.readInt()       // burstShotsFired
+                    );
+                }
+
+                @Override
+                public void encode(ByteBuf buffer, GunStateComponent value) {
+                    buffer.writeBoolean(value.isReloading());
+                    buffer.writeLong(value.reloadStartTime());
+                    buffer.writeInt(value.currentSequenceRounds());
+                    buffer.writeBoolean(value.isUnholstering());
+                    buffer.writeLong(value.unholsterStartTime());
+                    buffer.writeLong(value.lastFireTime());
+                    buffer.writeInt(value.burstShotsFired());
+                }
+            };
+    
+    public static final Codec<GunReloadComponent> GUN_RELOAD_COMPONENT_CODEC =
+            GunReloadComponent.CODEC;
+
+    public static final StreamCodec<ByteBuf, GunReloadComponent> STREAM_GUN_RELOAD_COMPONENT_CODEC =
+            GunReloadComponent.STREAM_CODEC;
 
     public static final Codec<AttachmentModifiersComponent> ATTACHMENT_MODIFIERS_COMPONENT_CODEC =
             AttachmentModifiersComponent.CODEC;

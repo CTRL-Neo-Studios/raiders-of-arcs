@@ -10,6 +10,7 @@ import dev.ctrlneo.roa.foundation.client.AdsStateManager;
 import dev.ctrlneo.roa.foundation.data.components.*;
 import dev.ctrlneo.roa.foundation.data.structures.AttachmentSlot;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
+import dev.ctrlneo.roa.foundation.data.structures.ReloadType;
 import dev.ctrlneo.roa.foundation.entity.BulletEntity;
 import dev.ctrlneo.roa.foundation.network.packets.ApplyRecoilPacket;
 import dev.ctrlneo.roa.foundation.utils.GunHelper;
@@ -43,17 +44,20 @@ public class GunItem extends Item {
     private final GunStatsComponent defaultStats;
     private final GunMagazineComponent defaultMagazine;
     private final GunFireModesComponent defaultFireModes;
+    private final GunReloadComponent defaultReload;
     public final AnimatorController animatorController;
 
     public GunItem(Properties properties,
             GunStatsComponent stats,
             GunMagazineComponent magazine,
             GunFireModesComponent fireModes,
+            GunReloadComponent reload,
             AnimatorController animatorController) {
         super(properties.stacksTo(1));
         this.defaultStats = stats;
         this.defaultMagazine = magazine;
         this.defaultFireModes = fireModes;
+        this.defaultReload = reload;
         this.animatorController = animatorController;
     }
 
@@ -64,6 +68,7 @@ public class GunItem extends Item {
         stack.set(RoaDataComponents.GUN_STATS.get(), defaultStats);
         stack.set(RoaDataComponents.GUN_MAGAZINE.get(), defaultMagazine);
         stack.set(RoaDataComponents.GUN_FIRE_MODES.get(), defaultFireModes);
+        stack.set(RoaDataComponents.GUN_RELOAD.get(), defaultReload);
         stack.set(RoaDataComponents.GUN_STATE.get(), GunStateComponent.DEFAULT);
         stack.set(RoaDataComponents.GUN_ATTACHMENTS.get(), GunAttachmentsComponent.EMPTY);
         return stack;
@@ -80,6 +85,10 @@ public class GunItem extends Item {
 
     public GunFireModesComponent getDefaultFireModes() {
         return defaultFireModes;
+    }
+
+    public GunReloadComponent getDefaultReload() {
+        return defaultReload;
     }
 
     public void tryFire(Level level, Player player, ItemStack stack) {
@@ -149,10 +158,14 @@ public class GunItem extends Item {
             stack.set(RoaDataComponents.GUN_STATE.get(), state.fired(currentTime));
         } else {
             stack.set(RoaDataComponents.GUN_STATE.get(), new GunStateComponent(
-                    false,
-                    0,
-                    currentTime,
-                    0));
+                    false,      // isReloading
+                    0,          // reloadStartTime
+                    0,          // currentSequenceRounds
+                    false,      // isUnholstering
+                    0,          // unholsterStartTime
+                    currentTime,// lastFireTime
+                    0           // burstShotsFired
+            ));
         }
 
         stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
@@ -231,12 +244,13 @@ public class GunItem extends Item {
         GunAttachmentsComponent attachments = stack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
         GunMagazineComponent magazine = stack.get(RoaDataComponents.GUN_MAGAZINE.get());
         GunStateComponent state = stack.get(RoaDataComponents.GUN_STATE.get());
+        GunReloadComponent reloadConfig = stack.get(RoaDataComponents.GUN_RELOAD.get());
 
-        if (magazine == null || state == null) {
+        if (magazine == null || state == null || reloadConfig == null) {
             return;
         }
 
-        // If already reloading, ignore
+        // If already reloading, ignore (button press won't interrupt)
         if (state.isReloading()) {
             return;
         }
@@ -248,28 +262,68 @@ public class GunItem extends Item {
 
         // Start reload - don't actually reload yet!
         long currentTime = player.level().getGameTime();
-        stack.set(RoaDataComponents.GUN_STATE.get(), state.withReloading(true, currentTime));
+        
+        // Transition time for RELOAD_IN (0.2 seconds = 4 ticks)
+        int transitionInTicks = Math.round(0.2f * 20.0f);
+        
+        // Determine reload behavior based on type
+        if (reloadConfig.reloadType() == ReloadType.ONE_SHOT) {
+            // One-shot reload: single animation, full magazine refill at the end
+            // Adjust start time to account for RELOAD_IN transition
+            long adjustedStartTime = currentTime + transitionInTicks;
+            stack.set(RoaDataComponents.GUN_STATE.get(), state.withReloading(true, adjustedStartTime, 0));
 
-        // Get reload duration for cooldown display
-        GunStatsComponent stats = GunUtils.getEffectiveStats(stack);
-        int reloadTicks = stats.getReloadTicks();
+            // Get reload duration from reload config
+            int reloadTicks = reloadConfig.getReloadDurationTicks();
+            
+            // Set item cooldown for visual feedback (includes RELOAD_IN transition)
+            player.getCooldowns().addCooldown(this, reloadTicks + transitionInTicks);
+        } else {
+            // Sequential reload: multiple animations, per-sequence refill
+            int maxCapacity = magazine.getEffectiveCapacity(attachments);
+            int currentAmmo = magazine.currentAmmo();
+            int roundsNeeded = maxCapacity - currentAmmo;
+            
+            // Calculate rounds for this sequence (min of sequence size and remaining)
+            int roundsThisSequence = Math.min(reloadConfig.sequenceSize(), roundsNeeded);
+            
+            // Adjust start time to account for RELOAD_IN transition
+            long adjustedStartTime = currentTime + transitionInTicks;
+            stack.set(RoaDataComponents.GUN_STATE.get(), state.withReloading(true, adjustedStartTime, roundsThisSequence));
 
-        // Set item cooldown for visual feedback (the shield-like bar)
-        player.getCooldowns().addCooldown(this, reloadTicks);
+            // Cooldown is based on SEQUENCE duration + RELOAD_IN transition
+            int sequenceTicks = reloadConfig.getReloadDurationTicks();
+            player.getCooldowns().addCooldown(this, sequenceTicks + transitionInTicks);
+        }
 
         // Play reload start sound
         player.playSound(SoundEvents.PISTON_EXTEND, 0.8f, 1.0f);
 
-        // Reload animation - dispatch from server for efficiency (no extra packet needed!)
-        // Get animation from AnimatorController with proper play behavior
+        // Reload animation - dispatch RELOAD_IN transition from server
         if (!player.level().isClientSide) {
-            AnimationState reloadState = 
-                ((dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController)animatorController)
-                    .getReloadState();
-            AnimationCommand command = reloadState.getAnimationCommand();
-            
-            // Create and dispatch AzCommand using the helper method
-            command.createAzureCommand().sendForItem(player, stack);
+            // Dispatch reload entrance transition
+            AnimationCommand inCommand = ((dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController)animatorController)
+                .getReloadInState().getAnimationCommand();
+            inCommand.createAzureCommand().sendForItem(player, stack);
+        }
+    }
+    
+    /**
+     * Determines the appropriate reload animation based on reload type and current state.
+     * For sequential reloads, picks the animation matching the sequence size (e.g., weapon.reload.3round).
+     */
+    private AnimationState getReloadAnimationState(ItemStack stack, GunReloadComponent reloadConfig) {
+        if (!(animatorController instanceof dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController gunController)) {
+            return ((dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController)animatorController).getReloadState();
+        }
+        
+        if (reloadConfig.reloadType() == ReloadType.ONE_SHOT) {
+            return gunController.getReloadState();
+        } else {
+            // Sequential reload - get state for specific round count
+            GunStateComponent state = stack.get(RoaDataComponents.GUN_STATE.get());
+            int roundsThisSequence = state != null ? state.currentSequenceRounds() : reloadConfig.sequenceSize();
+            return gunController.getReloadState(roundsThisSequence);
         }
     }
 
@@ -333,24 +387,106 @@ public class GunItem extends Item {
 
         // Check reload completion (server-side only)
         if (isSelected && state.isReloading() && !level.isClientSide) {
-            GunStatsComponent stats = GunUtils.getEffectiveStats(stack);
+            GunReloadComponent reloadConfig = stack.get(RoaDataComponents.GUN_RELOAD.get());
+            if (reloadConfig == null) return;
+            
             long currentTime = level.getGameTime();
+            
+            // Dispatch the main reload animation after RELOAD_IN transition completes
+            // reloadStartTime is when the main reload should start (after RELOAD_IN)
+            if (currentTime == state.reloadStartTime()) {
+                AnimationState reloadState = getReloadAnimationState(stack, reloadConfig);
+                AnimationCommand command = reloadState.getAnimationCommand();
+                command.createAzureCommand().sendForItem(player, stack);
+                
+                if (DEBUG) {
+                    LOGGER.info("[GunItem] Dispatching main reload animation: {}", reloadState.getAnimationName());
+                }
+            }
+            
+            if (reloadConfig.reloadType() == ReloadType.ONE_SHOT) {
+                // One-shot reload: check if full reload is complete
+                if (state.isReloadComplete(currentTime, reloadConfig.getReloadDurationTicks())) {
+                    // Complete one-shot reload - refill entire magazine
+                    GunAttachmentsComponent attachments = stack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
+                    GunHelper.reload(stack, player, attachments);
+                    stack.set(RoaDataComponents.GUN_STATE.get(), state.completeReload());
+                    
+                    // Dispatch RELOAD_OUT animation
+                    if (animatorController instanceof dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController gunController) {
+                        AnimationCommand command = gunController.getReloadOutState().getAnimationCommand();
+                        command.createAzureCommand().sendForItem(player, stack);
+                    }
 
-            if (state.isReloadComplete(currentTime, stats.getReloadTicks())) {
-                // Complete reload
-                GunAttachmentsComponent attachments = stack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
-                GunHelper.reload(stack, player, attachments);
-                stack.set(RoaDataComponents.GUN_STATE.get(), state.completeReload());
+                    player.playSound(SoundEvents.PISTON_CONTRACT, 0.8f, 1.0f);
 
-                player.playSound(SoundEvents.PISTON_CONTRACT, 0.8f, 1.0f);
-
-                GunMagazineComponent magazine = stack.get(RoaDataComponents.GUN_MAGAZINE.get());
-                if (player instanceof ServerPlayer serverPlayer && magazine != null) {
-                    serverPlayer.displayClientMessage(
-                            Component.translatable("gui.roa.reloaded",
-                                    magazine.currentAmmo(),
-                                    magazine.getEffectiveCapacity(attachments)),
-                            true);
+                    GunMagazineComponent magazine = stack.get(RoaDataComponents.GUN_MAGAZINE.get());
+                    if (player instanceof ServerPlayer serverPlayer && magazine != null) {
+                        serverPlayer.displayClientMessage(
+                                Component.translatable("gui.roa.reloaded",
+                                        magazine.currentAmmo(),
+                                        magazine.getEffectiveCapacity(attachments)),
+                                true);
+                    }
+                }
+            } else {
+                // Sequential reload: check if current sequence is complete
+                int sequenceTicks = reloadConfig.getReloadDurationTicks();
+                
+                if (state.isReloadComplete(currentTime, sequenceTicks)) {
+                    // Complete this sequence - add the rounds
+                    GunMagazineComponent magazine = stack.get(RoaDataComponents.GUN_MAGAZINE.get());
+                    GunAttachmentsComponent attachments = stack.get(RoaDataComponents.GUN_ATTACHMENTS.get());
+                    
+                    if (magazine == null) return;
+                    
+                    int roundsToAdd = state.currentSequenceRounds();
+                    int maxCapacity = magazine.getEffectiveCapacity(attachments);
+                    int newAmmo = Math.min(magazine.currentAmmo() + roundsToAdd, maxCapacity);
+                    
+                    // Update magazine
+                    stack.set(RoaDataComponents.GUN_MAGAZINE.get(), 
+                        new GunMagazineComponent(newAmmo, magazine.baseCapacity(), magazine.ammoType()));
+                    
+                    level.playSound(null, player.getX(), player.getY(), player.getZ(), 
+                        SoundEvents.ARMOR_EQUIP_LEATHER, net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 1.2f);
+                    
+                    // Check if more rounds are needed
+                    if (newAmmo < maxCapacity) {
+                        // Continue sequential reload - calculate next sequence
+                        int roundsNeeded = maxCapacity - newAmmo;
+                        int roundsNextSequence = Math.min(reloadConfig.sequenceSize(), roundsNeeded);
+                        
+                        // Start next sequence
+                        stack.set(RoaDataComponents.GUN_STATE.get(), state.startNextSequence(currentTime, roundsNextSequence));
+                        
+                        // Set cooldown for next sequence
+                        player.getCooldowns().addCooldown(this, sequenceTicks);
+                        
+                        // Dispatch next reload animation
+                        AnimationState reloadState = getReloadAnimationState(stack, reloadConfig);
+                        AnimationCommand command = reloadState.getAnimationCommand();
+                        command.createAzureCommand().sendForItem(player, stack);
+                    } else {
+                        // Fully reloaded!
+                        stack.set(RoaDataComponents.GUN_STATE.get(), state.completeReload());
+                        
+                        // Dispatch RELOAD_OUT animation
+                        if (animatorController instanceof dev.ctrlneo.roa.foundation.animations.controller.GunAnimatorController gunController) {
+                            AnimationCommand command = gunController.getReloadOutState().getAnimationCommand();
+                            command.createAzureCommand().sendForItem(player, stack);
+                        }
+                        
+                        player.playSound(SoundEvents.PISTON_CONTRACT, 0.8f, 1.0f);
+                        
+                        if (player instanceof ServerPlayer serverPlayer) {
+                            serverPlayer.displayClientMessage(
+                                    Component.translatable("gui.roa.reloaded",
+                                            newAmmo,
+                                            maxCapacity),
+                                    true);
+                        }
+                    }
                 }
             }
         }
@@ -368,6 +504,9 @@ public class GunItem extends Item {
         }
         if (!stack.has(RoaDataComponents.GUN_FIRE_MODES.get())) {
             stack.set(RoaDataComponents.GUN_FIRE_MODES.get(), defaultFireModes);
+        }
+        if (!stack.has(RoaDataComponents.GUN_RELOAD.get())) {
+            stack.set(RoaDataComponents.GUN_RELOAD.get(), defaultReload);
         }
         if (!stack.has(RoaDataComponents.GUN_STATE.get())) {
             stack.set(RoaDataComponents.GUN_STATE.get(), GunStateComponent.DEFAULT);
@@ -426,15 +565,17 @@ public class GunItem extends Item {
         // Show reload status
         GunStateComponent state = stack.get(RoaDataComponents.GUN_STATE.get());
         if (state != null && state.isReloading()) {
-            GunStatsComponent stats = GunUtils.getEffectiveStats(stack);
-            long currentTime = net.minecraft.client.Minecraft.getInstance().level != null
-                    ? net.minecraft.client.Minecraft.getInstance().level.getGameTime()
-                    : 0;
-            float progress = state.getReloadProgress(currentTime, stats.getReloadTicks());
+            GunReloadComponent reloadConfig = stack.get(RoaDataComponents.GUN_RELOAD.get());
+            if (reloadConfig != null) {
+                long currentTime = net.minecraft.client.Minecraft.getInstance().level != null
+                        ? net.minecraft.client.Minecraft.getInstance().level.getGameTime()
+                        : 0;
+                float progress = state.getReloadProgress(currentTime, reloadConfig.getReloadDurationTicks());
 
-            tooltipComponents.add(Component.translatable(
-                    "tooltip.roa.reloading",
-                    String.format("%.0f%%", progress * 100)).withStyle(ChatFormatting.YELLOW));
+                tooltipComponents.add(Component.translatable(
+                        "tooltip.roa.reloading",
+                        String.format("%.0f%%", progress * 100)).withStyle(ChatFormatting.YELLOW));
+            }
         }
 
         tooltipComponents.add(Component.empty());
@@ -471,7 +612,15 @@ public class GunItem extends Item {
             addStatLine(tooltipComponents, "range", baseStats.range(), effectiveStats.range());
             addStatLine(tooltipComponents, "recoil", baseStats.recoilVertical(), effectiveStats.recoilVertical());
             addStatLine(tooltipComponents, "ads_speed", baseStats.adsSpeed(), effectiveStats.adsSpeed());
-            addStatLine(tooltipComponents, "reload_speed", baseStats.reloadSpeed(), effectiveStats.reloadSpeed());
+            
+            // Show reload speed from GunReloadComponent
+            GunReloadComponent reloadConfig = stack.get(RoaDataComponents.GUN_RELOAD.get());
+            if (reloadConfig != null) {
+                tooltipComponents.add(Component.literal("  ")
+                        .append(Component.translatable("tooltip.roa.stat.reload_speed",
+                                String.format("%.1f", reloadConfig.reloadDuration())))
+                        .withStyle(ChatFormatting.GRAY));
+            }
 
             if (effectiveStats.armorPenetration() > 0) {
                 tooltipComponents.add(Component.translatable(
