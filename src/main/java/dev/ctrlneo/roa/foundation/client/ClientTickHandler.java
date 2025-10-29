@@ -80,6 +80,11 @@ public class ClientTickHandler {
 
         // Update gun animations based on player state
         GunAnimationStateManager.updateAnimationState(player, mainHandStack, gunItem);
+        
+        // Prevent sprinting while aiming (fixes rapid sprint/aim switching when holding sprint key)
+        if (AdsStateManager.isPlayerAiming() && player.isSprinting()) {
+            player.setSprinting(false);
+        }
 
         // Check reload completion
         checkReloadCompletion(mainHandStack, player);
