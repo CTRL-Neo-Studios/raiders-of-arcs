@@ -1,6 +1,5 @@
 package dev.ctrlneo.roa.foundation.items;
 
-import com.mojang.logging.LogUtils;
 import dev.ctrlneo.roa.foundation.RoaDataComponents;
 import dev.ctrlneo.roa.foundation.RoaPackets;
 import dev.ctrlneo.roa.foundation.animations.controller.AnimatorController;
@@ -32,15 +31,11 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Map;
 
 public class GunItem extends Item {
-    private static final Logger LOGGER = LogUtils.getLogger();
-    private static final boolean DEBUG = true; // Set to false to disable debug logs
-
     // Store default components in the class
     private final GunStatsComponent defaultStats;
     private final GunMagazineComponent defaultMagazine;
@@ -407,10 +402,6 @@ public class GunItem extends Item {
                 AnimationState reloadState = getReloadAnimationState(stack, reloadConfig);
                 AnimationCommand command = reloadState.getAnimationCommand();
                 command.createAzureCommand().sendForItem(player, stack);
-                
-                if (DEBUG) {
-                    LOGGER.info("[GunItem] Dispatching main reload animation: {}", reloadState.getAnimationName());
-                }
             }
             
             if (reloadConfig.reloadType() == ReloadType.ONE_SHOT) {
