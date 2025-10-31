@@ -3,8 +3,11 @@ package dev.ctrlneo.roa.foundation;
 import dev.ctrlneo.roa.Roa;
 import dev.ctrlneo.roa.foundation.animations.controller.guns.KettleGunAnimatorController;
 import dev.ctrlneo.roa.foundation.animations.controller.guns.RattlerGunAnimatorController;
+import dev.ctrlneo.roa.foundation.data.components.GunAttributeModifier;
 import dev.ctrlneo.roa.foundation.data.structures.AmmoType;
 import dev.ctrlneo.roa.foundation.data.structures.GunFireMode;
+import dev.ctrlneo.roa.foundation.data.structures.GunLevelConfig;
+import dev.ctrlneo.roa.foundation.data.structures.LevelModifiers;
 import dev.ctrlneo.roa.foundation.items.GunItem;
 import dev.ctrlneo.roa.foundation.utils.GunRegistryHelper;
 import net.minecraft.network.chat.Component;
@@ -27,19 +30,62 @@ public class RoaItems {
             .fireModes(GunFireMode.SINGLE_FIRE)
             .startsEmpty()
             .gunRenderer()
-            .stats(3f, 2f, 1.8f, 0.5f, 350, 30, 0.2f, 0.2f, 0.1f, 0.8f)  // Removed reloadSpeed - now in .reloadOneShot()
+            .stats(3f, 2f, 1.8f, 0.5f, 350, 42.8f, 0.2f, 0.2f, 0.1f, 0.8f)  // Removed reloadSpeed - now in .reloadOneShot()
             .animatorController(new KettleGunAnimatorController())
             .reloadOneShot(6.0f)
+            .levelConfig(GunLevelConfig.builder()
+                    .maxLevel(4)
+                    .level(2, LevelModifiers.builder()
+                            .multiplyBase(GunAttributeModifier.GunAttribute.DAMAGE, 1.1f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RANGE, 1.25f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RELOAD_SPEED, 0.9f)
+                            .build())
+                    .level(3, LevelModifiers.builder()
+                            .multiplyBase(GunAttributeModifier.GunAttribute.DAMAGE, 1.1f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RANGE, 1.5f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RELOAD_SPEED, 0.95f)
+                            .build())
+                    .level(4, LevelModifiers.builder()
+                            .multiplyBase(GunAttributeModifier.GunAttribute.DAMAGE, 1.1f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RANGE, 1.75f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RELOAD_SPEED, 0.95f)
+                            .build())
+                    .build())
             .register();
 
     public static final DeferredItem<GunItem> RATTLER = GunRegistryHelper.gun("rattler")
-            .ammo(AmmoType.MEDIUM, 20)
+            .ammo(AmmoType.MEDIUM, 10)
             .fireModes(GunFireMode.AUTOMATIC_FIRE, GunFireMode.SINGLE_FIRE)
             .startsEmpty()
             .gunRenderer()
             .stats(2f, 1.6f, 2f, 0.9f, 400, 56, 0.6f, 0.15f, 0.1f, 0.8f)  // Removed reloadSpeed - now in .reloadSequential()
             .animatorController(new RattlerGunAnimatorController())
-            .reloadSequential(3, 0.5f)
+            .reloadSequential(2, 0.5f)
+            .levelConfig(GunLevelConfig.builder()
+                    .maxLevel(4)
+                    .level(2, LevelModifiers.builder()
+                            .add(GunAttributeModifier.GunAttribute.MAGAZINE_CAPACITY, 4)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.ADS_SPEED, 1.15f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RANGE, 1.1f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RECOIL_HORIZONTAL, 1.2f)
+                            .build())
+                    .level(3, LevelModifiers.builder()
+                            .add(GunAttributeModifier.GunAttribute.MAGAZINE_CAPACITY, 4)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.ADS_SPEED, 1.15f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RANGE, 1.1f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RECOIL_VERTICAL, 1.5f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RECOIL_HORIZONTAL, 1.2f)
+                            .build())
+                    .level(4, LevelModifiers.builder()
+                            .add(GunAttributeModifier.GunAttribute.MAGAZINE_CAPACITY, 4)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.ADS_SPEED, 1.1f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RANGE, 1.2f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RECOIL_VERTICAL, 1.1f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.RECOIL_HORIZONTAL, 1.5f)
+                            .multiplyBase(GunAttributeModifier.GunAttribute.ACCURACY, 1.1f)
+                            .add(GunAttributeModifier.GunAttribute.DAMAGE, 1)
+                            .build())
+                    .build())
             .register();
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ROA_TAB =
