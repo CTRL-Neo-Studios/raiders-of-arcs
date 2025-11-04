@@ -58,7 +58,7 @@ public class RoaItems {
             .fireModes(GunFireMode.AUTOMATIC_FIRE, GunFireMode.SINGLE_FIRE)
             .startsEmpty()
             .gunRenderer()
-            .stats(2f, 1.6f, 2f, 0.9f, 400, 56, 0.6f, 0.15f, 0.1f, 0.8f)  // Removed reloadSpeed - now in .reloadSequential()
+            .stats(3f, 1.6f, 2f, 0.9f, 400, 56, 0.6f, 0.15f, 0.1f, 0.8f)  // Removed reloadSpeed - now in .reloadSequential()
             .animatorController(new RattlerGunAnimatorController())
             .reloadSequential(2, 0.5f)
             .levelConfig(GunLevelConfig.builder()
